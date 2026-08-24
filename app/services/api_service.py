@@ -14,5 +14,7 @@ def speech_to_text(audio_bytes: bytes) -> str:
    transcription = client.audio.transcriptions.create(
       file=('command_wbm',audio_bytes),
       model='whisper-large-v3-turbo'
+
    )
+   print(transcription.text)
    return transcription.text

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoicOps</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0b0d10;
+    --panel: #14171c;
+    --border: #262b33;
+    --text: #e8eaed;
+    --muted: #7a8291;
+    --accent: #7c6cf0;
+    --accent-dim: #7c6cf026;
+    --rec: #ff5c5c;
+    --ok: #2fd9a8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .window {
+    width: 100%;
+    max-width: 460px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+
+  .titlebar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: #101319;
+  }
+
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot.r { background: #ff5f57; }
+  .dot.y { background: #febc2e; }
+  .dot.g { background: #28c840; }
+
+  .titlebar span {
+    margin-left: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .body {
+    padding: 40px 32px 32px;
+    text-align: center;
+  }
+
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .sub {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 36px;
+    line-height: 1.5;
+  }
+
+  .mic-wrap {
+    position: relative;
+    width: 128px;
+    height: 128px;
+    margin: 0 auto 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+  }
+
+  .ring.pulse {
+    animation: pulse 1.6s ease-out infinite;
+    border-color: var(--rec);
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(0.9); opacity: 0.8; border-color: var(--rec); }
+    100% { transform: scale(1.5); opacity: 0; border-color: var(--rec); }
+  }
+
+  #micBtn {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    border: none;
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease, transform 0.15s ease;
+    z-index: 2;
+  }
+
+  #micBtn:hover { transform: scale(1.04); }
+  #micBtn:active { transform: scale(0.97); }
+  #micBtn.recording { background: var(--rec); }
+
+  #micBtn svg { width: 30px; height: 30px; }
+
+  .status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    min-height: 20px;
+    margin-bottom: 20px;
+  }
+
+  .status.recording { color: var(--rec); }
+  .status.ready { color: var(--ok); }
+
+  .log {
+    text-align: left;
+    background: #0e1115;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    min-height: 48px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .log .line { margin-bottom: 4px; }
+  .log .line:last-child { margin-bottom: 0; color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="dot r"></div>
+    <div class="dot y"></div>
+    <div class="dot g"></div>
+    <span>voicops — session</span>
+  </div>
+
+  <div class="body">
+    <div class="eyebrow">SAY YOUR INFRASTRUCTURE</div>
+    <h1>VoicOps</h1>
+    <p class="sub">Hold the mic, describe what you need.<br>Release to generate the config.</p>
+
+    <div class="mic-wrap">
+      <div class="ring" id="ring"></div>
+      <button id="micBtn" aria-label="Hold to record">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+          <line x1="12" y1="19" x2="12" y2="23"></line>
+          <line x1="8" y1="23" x2="16" y2="23"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="status" id="status">hold to speak</div>
+
+    <div class="log" id="log">
+      <div class="line">$ waiting for input…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const micBtn = document.getElementById('micBtn');
+  const ring = document.getElementById('ring');
+  const statusEl = document.getElementById('status');
+  const logEl = document.getElementById('log');
+
+  let mediaRecorder;
+  let audioChunks = [];
+
+  function addLog(text) {
+    const line = document.createElement('div');
+    line.className = 'line';
+    line.textContent = text;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function setStatus(text, cls) {
+    statusEl.textContent = text;
+    statusEl.className = 'status' + (cls ? ' ' + cls : '');
+  }
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+
+      mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        stream.getTracks().forEach(track => track.stop());
+        await sendAudio(audioBlob);
+      };
+
+      mediaRecorder.start();
+      micBtn.classList.add('recording');
+      ring.classList.add('pulse');
+      setStatus('listening…', 'recording');
+      addLog('$ recording started');
+    } catch (err) {
+      setStatus('mic access denied', 'recording');
+      addLog('! ' + err.message);
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+    micBtn.classList.remove('recording');
+    ring.classList.remove('pulse');
+    setStatus('processing…');
+    addLog('$ recording stopped, sending audio…');
+  }
+
+  async function sendAudio(audioBlob) {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'command.webm');
+
+    try {
+      // The endpointttttttttttttt
+      // Replace with your actual backend endpoint
+      const response = await fetch('/generate-config', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) throw new Error('server responded ' + response.status);
+
+      const data = await response.json();
+      setStatus('done', 'ready');
+      addLog('$ transcript: ' + (data.transcript || 'n/a'));
+      addLog(data.config || JSON.stringify(data));
+    } catch (err) {
+      setStatus('request failed');
+      addLog('! ' + err.message);
+    }
+  }
+
+  // Hold to record, release to stop and send
+  micBtn.addEventListener('mousedown', startRecording);
+  micBtn.addEventListener('mouseup', stopRecording);
+  micBtn.addEventListener('mouseleave', () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') stopRecording();
+  });
+
+  // Touch support for mobile
+  micBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); });
+  micBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopRecording(); });
+</script>
+
+</body>
+</html>

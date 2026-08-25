@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+############## GROQ API SERVICE ###############3
 
 API_KEY = os.getenv('GROQ_API_KEY')
 client = AsyncGroq(api_key=API_KEY)
@@ -20,3 +21,5 @@ async def speech_to_text(audio_bytes: bytes) -> str:
         raise Exception("Could not reach Groq — check network")
     except APIStatusError as e:
         raise Exception(f"Groq API error {e.status_code}: {e.message}")
+
+

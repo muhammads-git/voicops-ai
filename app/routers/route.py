@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse,FileResponse
 from app.services.api_service import speech_to_text
 import os
 from pathlib import Path
+from app.services.extract_intent import extract_intent
 
 router = APIRouter()
 
@@ -21,19 +22,25 @@ async def serve_frontend():
 
 
 
-
-
 @router.post('/generate-config')
-async def generate_config(audio:UploadFile):
-   audio_bytes = await audio.read()
-   print(audio_bytes)
-   # send the audio bytes to GroqApi
-   trans_text =''
-   try:
-      trans_text = await speech_to_text(audio_bytes)
-   except Exception as e:
-      print(f'Error: {e}')
+async def generate_config(audio: UploadFile):
+    audio_bytes = await audio.read()
 
-   return {'transcript':trans_text or None}
+    # Step 1: audio -> transcript
+    try:
+        transcript = await speech_to_text(audio_bytes)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=str(e))
 
-   
+    # Step 2: transcript -> structured intent
+    try:
+        intent = await extract_intent(transcript)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+    # Today's stopping point: return both, confirm the full chain works
+    return {
+        "transcript": transcript,
+        "services": intent["services"],
+        "unsupported": intent["unsupported"],
+    }

@@ -6,6 +6,13 @@ logger = logging.getLogger(__name__)
 
 APP_RUNTIMES = {"nodejs", "fastapi", "flask", "django"}
 
+RUNTIME_PORTS = {
+    "nodejs": 3000,
+    "fastapi": 8000,
+    "flask": 5000,
+    "django": 8000,
+}
+
 TEMPLATES = {
     "nodejs": {
         "dockerfile": """FROM node:20-alpine
@@ -88,44 +95,40 @@ def build_config(services: list[str]) -> dict:
     """
     Takes the extracted services list, returns deployable files:
     {"dockerfile": str | None, "docker_compose": str | None}
-    Never raises for bad/unknown input — an empty or unmatched list
-    is a valid (if useless) case, not a crash. Logs anything unexpected
-    so you can see it during testing without the request failing.
+    Never raises for bad/unknown input — logs and returns None fields instead.
     """
     if not isinstance(services, list):
         logger.error(f"build_config expected a list, got {type(services)}")
         return {"dockerfile": None, "docker_compose": None}
 
     dockerfile = None
+    runtime = None
     compose_services = []
     matched_infra = []
 
     for service in services:
         if service not in TEMPLATES and service not in APP_RUNTIMES:
-            # e.g. "docker" itself, or anything that slipped through
-            # extract_intent's validation — log it, don't crash
             logger.info(f"build_config: '{service}' has no template, skipping")
             continue
 
         if service in APP_RUNTIMES:
             dockerfile = TEMPLATES[service]["dockerfile"]
+            runtime = service
         elif "compose_service" in TEMPLATES.get(service, {}):
             compose_services.append(TEMPLATES[service]["compose_service"])
             matched_infra.append(service)
 
     if not dockerfile and not compose_services:
-        # Nothing usable came through at all
         logger.warning(f"build_config: no matching templates for {services}")
         return {"dockerfile": None, "docker_compose": None}
 
-    # If an app runtime was requested, add it as its own compose service,
-    # depending on whatever infra services were also requested.
     if dockerfile:
+        port = RUNTIME_PORTS.get(runtime, 3000)
         depends_block = "".join(f"      - {s}\n" for s in matched_infra) or "      []\n"
         app_block = f"""  app:
     build: .
     ports:
-      - "3000:3000"
+      - "{port}:{port}"
     depends_on:
 {depends_block}"""
         compose_services.insert(0, app_block)

@@ -6,15 +6,29 @@ from app.services.api_service import client
 
 logger = logging.getLogger(__name__)
 
-SUPPORTED_SERVICES = {"postgresql", "mysql", "mongodb", "redis", "fastapi", "nodejs", "docker"}
-
+SUPPORTED_SERVICES = {"postgresql", "mysql", "mongodb", "redis", "fastapi", "nodejs", "docker", "flask", "django"}
 SYSTEM_PROMPT = """Extract only known infrastructure services mentioned in the user's request.
 Respond only with JSON in this exact shape:
 {"services": ["postgresql", "redis"], "unsupported": ["kafka"]}
 
-Only use these values in "services": postgresql, mysql, mongodb, redis, fastapi, nodejs, docker.
+Only use these values in "services": postgresql, mysql, mongodb, redis, fastapi, nodejs, flask, django, docker.
 Any service mentioned that is NOT in that list goes into "unsupported" instead, using the user's own word for it.
 If there are no unsupported services, return an empty list for "unsupported"."""
+## Coreections are for the LLM to discover the right word...
+KNOWN_CORRECTIONS = {
+    "not just": "node.js",
+    "node js": "node.js",
+    "postgres equal": "postgresql",
+    # add more as you discover them during testing
+}
+
+def normalize_transcript(transcript: str) -> str:
+    lowered = transcript.lower()
+    for wrong, right in KNOWN_CORRECTIONS.items():
+        lowered = lowered.replace(wrong, right)
+    return lowered
+
+
 
 ##################3
 async def extract_intent(transcript: str) -> dict:

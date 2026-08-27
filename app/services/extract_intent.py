@@ -28,8 +28,6 @@ def normalize_transcript(transcript: str) -> str:
         lowered = lowered.replace(wrong, right)
     return lowered
 
-
-
 ##################3
 async def extract_intent(transcript: str) -> dict:
     """

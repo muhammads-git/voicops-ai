@@ -23,3 +23,5 @@ async def speech_to_text(audio_bytes: bytes) -> str:
         raise Exception(f"Groq API error {e.status_code}: {e.message}")
 
 
+def terraform():
+    pass

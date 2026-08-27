@@ -14,79 +14,79 @@ RUNTIME_PORTS = {
 }
 
 TEMPLATES = {
-    "nodejs": {
-        "dockerfile": """FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-EXPOSE 3000
-CMD ["npm", "start"]
-""",
-    },
-    "fastapi": {
-        "dockerfile": """FROM python:3.12-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-""",
-    },
-    "flask": {
-        "dockerfile": """FROM python:3.12-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-EXPOSE 5000
-CMD ["flask", "run", "--host=0.0.0.0"]
-""",
-    },
-    "django": {
-        "dockerfile": """FROM python:3.12-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-EXPOSE 8000
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-""",
-    },
-    "postgresql": {
-        "compose_service": """  postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_PASSWORD: changeme
-      POSTGRES_DB: appdb
-    ports:
-      - "5432:5432"
-""",
-    },
-    "mysql": {
-        "compose_service": """  mysql:
-    image: mysql:8
-    environment:
-      MYSQL_ROOT_PASSWORD: changeme
-      MYSQL_DATABASE: appdb
-    ports:
-      - "3306:3306"
-""",
-    },
-    "redis": {
-        "compose_service": """  redis:
-    image: redis:7
-    ports:
-      - "6379:6379"
-""",
-    },
-    "mongodb": {
-        "compose_service": """  mongo:
-    image: mongo:7
-    ports:
-      - "27017:27017"
-""",
+         "nodejs": {
+            "dockerfile": """FROM node:20-alpine
+      WORKDIR /app
+      COPY package*.json ./
+      RUN npm install
+      COPY . .
+      EXPOSE 3000
+      CMD ["npm", "start"]
+      """,
+         },
+         "fastapi": {
+            "dockerfile": """FROM python:3.12-slim
+      WORKDIR /app
+      COPY requirements.txt .
+      RUN pip install --no-cache-dir -r requirements.txt
+      COPY . .
+      EXPOSE 8000
+      CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+      """,
+         },
+         "flask": {
+            "dockerfile": """FROM python:3.12-slim
+      WORKDIR /app
+      COPY requirements.txt .
+      RUN pip install --no-cache-dir -r requirements.txt
+      COPY . .
+      EXPOSE 5000
+      CMD ["flask", "run", "--host=0.0.0.0"]
+      """,
+         },
+         "django": {
+            "dockerfile": """FROM python:3.12-slim
+      WORKDIR /app
+      COPY requirements.txt .
+      RUN pip install --no-cache-dir -r requirements.txt
+      COPY . .
+      EXPOSE 8000
+      CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+      """,
+         },
+         "postgresql": {
+            "compose_service": """  postgres:
+         image: postgres:16
+         environment:
+            POSTGRES_PASSWORD: changeme
+            POSTGRES_DB: appdb
+         ports:
+            - "5432:5432"
+      """,
+         },
+         "mysql": {
+            "compose_service": """  mysql:
+         image: mysql:8
+         environment:
+            MYSQL_ROOT_PASSWORD: changeme
+            MYSQL_DATABASE: appdb
+         ports:
+            - "3306:3306"
+      """,
+         },
+         "redis": {
+            "compose_service": """  redis:
+         image: redis:7
+         ports:
+            - "6379:6379"
+      """,
+         },
+         "mongodb": {
+            "compose_service": """  mongo:
+         image: mongo:7
+         ports:
+            - "27017:27017"
+      """,
     },
 }
 
@@ -139,3 +139,5 @@ def build_config(services: list[str]) -> dict:
         "dockerfile": dockerfile,
         "docker_compose": docker_compose,
     }
+
+""" Needed a FIX for speech recocgnition errors. sometimes misreads the wordings..."""

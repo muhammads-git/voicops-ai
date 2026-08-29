@@ -3,382 +3,449 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VoicOps</title>
+<title>VoicOps — Voice-to-Infrastructure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
   :root {
-    --bg: #0a0c10;
-    --panel: #12151b;
-    --panel-raised: #171b22;
-    --border: #232833;
-    --text: #e4e7ec;
-    --muted: #6b7280;
-    --muted-dim: #454b56;
-    --amber: #f2b84b;
-    --amber-2: #d98f2b;
-    --amber-dim: #f2b84b1f;
-    --teal: #3ecf8e;
-    --teal-dim: #3ecf8e1f;
-    --blue: #4ea1ff;
-    --blue-dim: #4ea1ff1f;
-    --error: #ff5c5c;
-    --error-dim: #ff5c5c1f;
+    --bg: #09090b;
+    --surface: #111113;
+    --surface-2: #18181b;
+    --surface-3: #1e1e22;
+    --border: #27272a;
+    --border-subtle: #1e1e22;
+    --text: #fafafa;
+    --text-secondary: #a1a1aa;
+    --text-muted: #52525b;
+    --text-dim: #3f3f46;
+    --accent: #f59e0b;
+    --accent-soft: rgba(245, 158, 11, 0.1);
+    --accent-glow: rgba(245, 158, 11, 0.15);
+    --emerald: #10b981;
+    --emerald-soft: rgba(16, 185, 129, 0.1);
+    --blue: #3b82f6;
+    --blue-soft: rgba(59, 130, 246, 0.1);
+    --violet: #8b5cf6;
+    --violet-soft: rgba(139, 92, 246, 0.08);
+    --red: #ef4444;
+    --red-soft: rgba(239, 68, 68, 0.1);
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-sm: 8px;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html, body { height: 100%; }
+  html { height: 100%; }
 
   body {
-    background-color: var(--bg);
-    background-image:
-      radial-gradient(circle at 50% -10%, #1a1f29 0%, transparent 55%),
-      radial-gradient(#1c212b 1px, transparent 1px);
-    background-size: auto, 26px 26px;
-    background-position: 0 0, 0 0;
+    background: var(--bg);
     color: var(--text);
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font);
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  .app {
-    width: 100%;
-    max-width: 540px;
+  /* ── Ambient background ── */
+  .bg-mesh {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 10%, rgba(245,158,11,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 20%, rgba(139,92,246,0.03) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 90%, rgba(59,130,246,0.03) 0%, transparent 60%);
+  }
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.3;
+    background-image:
+      linear-gradient(var(--border-subtle) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 20%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 20%, transparent 70%);
   }
 
-  .hackathon-badge {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 22px;
+  /* ── Navigation ── */
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; height: 56px;
+    background: rgba(9,9,11,0.8);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-subtle);
   }
-
-  .hackathon-badge span {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    letter-spacing: 0.08em;
-    color: var(--muted);
+  .nav-brand {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; color: var(--text);
+  }
+  .nav-logo {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--accent), #d97706);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .nav-logo svg { width: 16px; height: 16px; }
+  .nav-name {
+    font-weight: 600; font-size: 15px; letter-spacing: -0.02em;
+  }
+  .nav-tag {
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    color: var(--text-muted); background: var(--surface-2);
+    padding: 2px 8px; border-radius: 999px;
     border: 1px solid var(--border);
-    background: var(--panel);
-    padding: 5px 12px;
-    border-radius: 999px;
+    margin-left: 4px;
+  }
+  .nav-links { display: flex; align-items: center; gap: 4px; }
+  .nav-link {
+    font-size: 13px; font-weight: 500; color: var(--text-secondary);
+    text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm);
+    transition: color 0.15s, background 0.15s;
+  }
+  .nav-link:hover { color: var(--text); background: var(--surface-2); }
+  .nav-link.active { color: var(--text); background: var(--surface-2); }
+
+  /* ── Main layout ── */
+  .main {
+    position: relative; z-index: 1;
+    max-width: 640px; margin: 0 auto;
+    padding: 48px 20px 80px;
   }
 
-  .hero {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    margin-bottom: 26px;
+  /* ── Hero ── */
+  .hero { text-align: center; margin-bottom: 40px; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    color: var(--accent); background: var(--accent-soft);
+    border: 1px solid rgba(245,158,11,0.15);
+    padding: 4px 12px; border-radius: 999px;
+    margin-bottom: 20px;
   }
-
-  .logo-mark {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
-    background: linear-gradient(145deg, var(--amber), var(--amber-2));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 16px;
-    box-shadow: 0 10px 30px -8px #f2b84b4d;
+  .hero-badge::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse-dot 2s ease-in-out infinite;
   }
-
-  .logo-mark svg { width: 28px; height: 28px; }
-
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+  }
   .hero h1 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    margin-bottom: 6px;
+    font-size: 36px; font-weight: 700; letter-spacing: -0.035em;
+    line-height: 1.15; margin-bottom: 12px;
+    background: linear-gradient(180deg, var(--text) 0%, var(--text-secondary) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
-
   .hero p {
-    font-size: 13.5px;
-    color: var(--muted);
-    max-width: 340px;
-    line-height: 1.5;
+    font-size: 15px; line-height: 1.6; color: var(--text-secondary);
+    max-width: 420px; margin: 0 auto;
   }
 
+  /* ── Pipeline steps ── */
+  .pipeline {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; margin-bottom: 32px;
+    padding: 0 10px;
+  }
+  .pipe-step {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11.5px; font-weight: 500; color: var(--text-dim);
+    transition: color 0.4s;
+    white-space: nowrap;
+  }
+  .pipe-step .pipe-icon {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-family: var(--mono);
+    transition: border-color 0.4s, background 0.4s, color 0.4s;
+    color: var(--text-dim);
+  }
+  .pipe-step.active { color: var(--accent); }
+  .pipe-step.active .pipe-icon {
+    border-color: var(--accent); background: var(--accent-soft); color: var(--accent);
+  }
+  .pipe-step.done { color: var(--emerald); }
+  .pipe-step.done .pipe-icon {
+    border-color: var(--emerald); background: var(--emerald-soft); color: var(--emerald);
+  }
+  .pipe-line {
+    width: 24px; height: 1px; background: var(--border);
+    margin: 0 6px; flex-shrink: 0;
+    transition: background 0.4s;
+  }
+  .pipe-line.done { background: var(--emerald); }
+
+  /* ── Service chips ── */
   .chip-row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 7px;
-    margin: 20px 0 28px;
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 6px; margin-bottom: 28px;
   }
-
   .chip {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
+    font-family: var(--mono); font-size: 11px; font-weight: 400;
+    color: var(--text-muted); background: transparent;
     border: 1px solid var(--border);
-    background: var(--panel);
-    padding: 5px 10px;
-    border-radius: 7px;
-    transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+    padding: 5px 10px; border-radius: 6px;
+    transition: all 0.3s ease; cursor: default;
   }
-
   .chip.active {
-    color: var(--amber);
-    border-color: #f2b84b55;
-    background: var(--amber-dim);
+    color: var(--accent); border-color: rgba(245,158,11,0.3);
+    background: var(--accent-soft);
+    box-shadow: 0 0 12px rgba(245,158,11,0.06);
   }
 
+  /* ── Console panel ── */
   .console {
-    background: var(--panel);
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 30px 26px 26px;
-    box-shadow: 0 40px 80px -30px rgba(0,0,0,0.7);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.02),
+      0 20px 60px -12px rgba(0,0,0,0.5),
+      0 0 80px -20px rgba(245,158,11,0.04);
   }
 
+  /* ── Waveform area ── */
+  .wave-area {
+    padding: 32px 24px 8px;
+    display: flex; flex-direction: column; align-items: center;
+  }
   .wave-wrap {
-    position: relative;
-    height: 88px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 4px;
+    width: 100%; height: 64px; position: relative;
+    margin-bottom: 20px;
   }
+  canvas#wave { width: 100%; height: 100%; display: block; }
 
-  canvas#wave {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-
-  .mic-row {
-    display: flex;
-    justify-content: center;
-    margin: 6px 0 18px;
-  }
-
+  /* ── Mic button ── */
+  .mic-container { position: relative; margin-bottom: 24px; }
   #micBtn {
-    position: relative;
-    width: 68px;
-    height: 68px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--panel-raised);
-    color: var(--muted);
+    position: relative; z-index: 2;
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-muted);
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.15s ease, background 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent; user-select: none;
+  }
+  #micBtn svg { width: 20px; height: 20px; }
+  #micBtn:hover { border-color: var(--text-dim); color: var(--text-secondary); }
+  #micBtn:active { transform: scale(0.95); }
+
+  /* Pulse ring on recording */
+  .mic-ring {
+    position: absolute; inset: -6px; z-index: 1;
+    border-radius: 50%; border: 2px solid transparent;
+    transition: all 0.3s ease;
+  }
+  #micBtn.recording { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  #micBtn.recording ~ .mic-ring {
+    border-color: rgba(245,158,11,0.25);
+    animation: ring-pulse 1.5s ease-in-out infinite;
+  }
+  #micBtn.processing { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); }
+  #micBtn.processing ~ .mic-ring {
+    border-color: rgba(59,130,246,0.2);
+    animation: ring-pulse 1s ease-in-out infinite;
+  }
+  @keyframes ring-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.4; }
   }
 
-  #micBtn svg { width: 24px; height: 24px; }
+  /* ── Status area ── */
+  .status-area {
+    text-align: center; padding: 0 24px 24px;
+    min-height: 48px;
+  }
+  .status-text {
+    font-size: 13px; font-weight: 500; color: var(--text-muted);
+    transition: color 0.25s; margin-bottom: 4px;
+  }
+  .status-text.recording { color: var(--accent); }
+  .status-text.error { color: var(--red); }
+  .status-text.ready { color: var(--emerald); }
 
-  #micBtn:hover {
-    border-color: var(--muted-dim);
-    color: var(--text);
+  .transcript-text {
+    font-size: 13px; color: var(--text-secondary);
+    line-height: 1.5; margin-top: 6px;
+  }
+  .transcript-text em { font-style: normal; color: var(--text); }
+
+  .unsupported-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin-top: 8px; padding: 4px 10px;
+    background: var(--red-soft); border: 1px solid rgba(239,68,68,0.15);
+    border-radius: 999px; font-size: 11px; color: var(--red);
   }
 
-  #micBtn:active { transform: scale(0.96); }
-
-  #micBtn.recording {
-    background: var(--amber-dim);
-    border-color: var(--amber);
-    color: var(--amber);
-    box-shadow: 0 0 0 6px var(--amber-dim);
-  }
-
-  #micBtn.processing {
-    background: var(--blue-dim);
-    border-color: var(--blue);
-    color: var(--blue);
-    animation: spin-glow 1.1s linear infinite;
-  }
-
-  @keyframes spin-glow {
-    0%, 100% { box-shadow: 0 0 0 6px var(--blue-dim); }
-    50% { box-shadow: 0 0 0 10px transparent; }
-  }
-
-  .status-block {
-    text-align: center;
-    min-height: 54px;
-  }
-
-  .status-line {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--muted);
-    transition: color 0.2s ease;
-  }
-
-  .status-line.recording { color: var(--amber); }
-  .status-line.error { color: var(--error); }
-  .status-line.ready { color: var(--teal); }
-
-  .transcript-line {
-    margin-top: 8px;
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.5;
-    font-style: italic;
-  }
-
-  .transcript-line span {
-    color: var(--text);
-    font-style: normal;
-  }
-
-  .unsupported-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 10px;
-    padding: 5px 10px;
-    background: var(--error-dim);
-    border: 1px solid #ff5c5c33;
-    border-radius: 999px;
-    font-size: 11.5px;
-    color: var(--error);
-  }
-
+  /* ── Results ── */
   .results {
-    margin-top: 22px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
+    padding: 0 16px 16px;
+    display: flex; flex-direction: column; gap: 12px;
   }
 
   .file-card {
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--radius);
     overflow: hidden;
-    background: #0d1015;
-    animation: rise 0.35s ease;
+    background: var(--bg);
+    animation: card-in 0.3s ease;
   }
-
-  @keyframes rise {
-    from { opacity: 0; transform: translateY(6px); }
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
   .file-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
-    background: var(--panel-raised);
-    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border-subtle);
   }
-
   .file-name {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12.5px;
-    color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 12px; font-weight: 500;
+    color: var(--text-secondary);
   }
-
-  .file-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
+  .file-icon {
+    width: 16px; height: 16px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 700; font-family: var(--mono);
   }
+  .file-icon.docker { background: var(--blue-soft); color: var(--blue); }
+  .file-icon.compose { background: var(--emerald-soft); color: var(--emerald); }
+  .file-icon.terraform { background: var(--violet-soft); color: var(--violet); }
 
-  .file-dot.docker { background: var(--blue); box-shadow: 0 0 8px var(--blue-dim); }
-  .file-dot.compose { background: var(--teal); box-shadow: 0 0 8px var(--teal-dim); }
-
-  .file-actions {
-    display: flex;
-    gap: 4px;
+  .file-badge {
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    padding: 2px 8px; border-radius: 999px; margin-left: 8px;
   }
+  .file-badge.pass { background: var(--emerald-soft); color: var(--emerald); }
+  .file-badge.fail { background: var(--red-soft); color: var(--red); }
+  .file-badge.healed { background: var(--accent-soft); color: var(--accent); }
+  .file-badge.na { background: var(--surface-3); color: var(--text-dim); }
 
+  .file-actions { display: flex; gap: 2px; }
   .file-actions button {
-    background: transparent;
-    border: none;
-    color: var(--muted);
-    cursor: pointer;
-    padding: 5px 7px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    transition: color 0.15s ease, background 0.15s ease;
+    background: transparent; border: none;
+    color: var(--text-dim); cursor: pointer;
+    padding: 4px 6px; border-radius: 6px;
+    display: flex; align-items: center;
+    transition: color 0.15s, background 0.15s;
   }
-
-  .file-actions button:hover {
-    color: var(--text);
-    background: #ffffff0a;
-  }
-
-  .file-actions svg { width: 14px; height: 14px; }
+  .file-actions button:hover { color: var(--text-secondary); background: var(--surface-3); }
+  .file-actions svg { width: 13px; height: 13px; }
 
   .file-body {
     padding: 14px 16px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12.5px;
-    line-height: 1.7;
-    overflow-x: auto;
-    white-space: pre;
+    font-family: var(--mono); font-size: 12px;
+    line-height: 1.75; overflow-x: auto; white-space: pre;
+    counter-reset: line;
+  }
+  .file-body .line { display: block; }
+  .file-body .line::before {
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block; width: 24px; margin-right: 16px;
+    text-align: right; color: var(--text-dim);
+    font-size: 11px; user-select: none;
   }
 
   .tok-kw { color: var(--blue); }
-  .tok-key { color: var(--teal); }
-  .tok-str { color: var(--amber); }
-  .tok-cmt { color: var(--muted-dim); }
-  .tok-plain { color: var(--text); }
+  .tok-key { color: var(--emerald); }
+  .tok-str { color: var(--accent); }
+  .tok-cmt { color: var(--text-dim); font-style: italic; }
+  .tok-plain { color: var(--text-secondary); }
 
+  /* ── Empty state ── */
   .empty-state {
-    margin-top: 22px;
-    padding: 20px 16px;
+    margin: 0 16px 16px; padding: 24px 16px;
     border: 1px dashed var(--border);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 12.5px;
-    color: var(--muted);
-    line-height: 1.6;
+    border-radius: var(--radius);
+    display: flex; align-items: center; gap: 12px;
+    font-size: 13px; color: var(--text-muted); line-height: 1.5;
   }
+  .empty-state svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--text-dim); }
+  .empty-state strong { color: var(--text-secondary); font-weight: 500; }
 
-  .empty-state svg { width: 22px; height: 22px; flex-shrink: 0; color: var(--muted-dim); }
-  .empty-state strong { color: var(--text); font-weight: 500; }
+  /* ── Footer ── */
+  .footer {
+    text-align: center; margin-top: 32px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .footer-text {
+    font-size: 12px; color: var(--text-dim);
+  }
+  .footer-links { display: flex; gap: 16px; }
+  .footer-links a {
+    font-size: 12px; color: var(--text-muted);
+    text-decoration: none; transition: color 0.15s;
+  }
+  .footer-links a:hover { color: var(--text-secondary); }
 
-  .footer-note {
-    text-align: center;
-    margin-top: 22px;
-    font-size: 11.5px;
-    color: var(--muted-dim);
+  /* ── Responsive ── */
+  @media (max-width: 480px) {
+    .hero h1 { font-size: 28px; }
+    .pipeline { gap: 0; }
+    .pipe-step span { display: none; }
+    .pipe-line { width: 16px; }
+    .nav-tag { display: none; }
   }
 </style>
 </head>
 <body>
 
-<div class="app">
+<!-- Background layers -->
+<div class="bg-mesh"></div>
+<div class="bg-grid"></div>
 
-  <div class="hackathon-badge">
-    <span>AI ALIBABA HACKATHON — PAKISTAN</span>
-  </div>
-
-  <div class="hero">
-    <div class="logo-mark">
+<!-- Navigation -->
+<nav class="nav">
+  <a href="/" class="nav-brand">
+    <div class="nav-logo">
       <svg viewBox="0 0 24 24" fill="none">
-        <path d="M5 5L11 12L5 19" stroke="#0a0c10" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-        <rect x="13" y="15.5" width="2.2" height="4" rx="1" fill="#0a0c10"/>
-        <rect x="16.4" y="12.5" width="2.2" height="7" rx="1" fill="#0a0c10"/>
-        <rect x="19.8" y="9.5" width="2.2" height="10" rx="1" fill="#0a0c10"/>
+        <path d="M7 4v16M12 8v8M17 6v12" stroke="#09090b" stroke-width="2.5" stroke-linecap="round"/>
       </svg>
     </div>
-    <h1>VoicOps</h1>
-    <p>Say your infrastructure out loud — get a ready-to-run Dockerfile and compose config back.</p>
+    <span class="nav-name">VoicOps</span>
+    <span class="nav-tag">v0.2</span>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="nav-link active">Generate</a>
+    <a href="/analytics" class="nav-link">Analytics</a>
+  </div>
+</nav>
+
+<!-- Main content -->
+<div class="main">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">AI Alibaba Hackathon</div>
+    <h1>Speak your infrastructure.<br>Deploy in seconds.</h1>
+    <p>Describe your stack out loud — VoicOps generates validated Docker configs and Alibaba Cloud Terraform, self-healing until every file passes.</p>
   </div>
 
+  <!-- Pipeline indicator -->
+  <div class="pipeline" id="pipeline">
+    <div class="pipe-step" id="pipe-record"><span class="pipe-icon">1</span><span>Record</span></div>
+    <div class="pipe-line" id="line-1"></div>
+    <div class="pipe-step" id="pipe-transcribe"><span class="pipe-icon">2</span><span>Transcribe</span></div>
+    <div class="pipe-line" id="line-2"></div>
+    <div class="pipe-step" id="pipe-extract"><span class="pipe-icon">3</span><span>Extract</span></div>
+    <div class="pipe-line" id="line-3"></div>
+    <div class="pipe-step" id="pipe-generate"><span class="pipe-icon">4</span><span>Generate</span></div>
+    <div class="pipe-line" id="line-4"></div>
+    <div class="pipe-step" id="pipe-validate"><span class="pipe-icon">5</span><span>Validate</span></div>
+  </div>
+
+  <!-- Service chips -->
   <div class="chip-row" id="chipRow">
     <span class="chip" data-key="docker">Docker</span>
     <span class="chip" data-key="postgres">Postgres</span>
@@ -389,27 +456,31 @@
     <span class="chip" data-key="fastapi,uvicorn">FastAPI</span>
     <span class="chip" data-key="flask">Flask</span>
     <span class="chip" data-key="django">Django</span>
+    <span class="chip" data-key="terraform,alicloud">Terraform</span>
   </div>
 
+  <!-- Console -->
   <div class="console">
-    <div class="wave-wrap">
-      <canvas id="wave"></canvas>
+    <div class="wave-area">
+      <div class="wave-wrap">
+        <canvas id="wave"></canvas>
+      </div>
+      <div class="mic-container">
+        <button id="micBtn" aria-label="Hold to record">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+          </svg>
+        </button>
+        <div class="mic-ring"></div>
+      </div>
     </div>
 
-    <div class="mic-row">
-      <button id="micBtn" aria-label="Hold to record">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-          <line x1="12" y1="19" x2="12" y2="23"></line>
-          <line x1="8" y1="23" x2="16" y2="23"></line>
-        </svg>
-      </button>
-    </div>
-
-    <div class="status-block">
-      <div class="status-line" id="status">Hold the mic and describe what you need</div>
-      <div class="transcript-line" id="transcript" style="display:none;"></div>
+    <div class="status-area">
+      <div class="status-text" id="status">Hold the mic and describe your infrastructure</div>
+      <div class="transcript-text" id="transcript" style="display:none;"></div>
       <div id="unsupportedChip"></div>
     </div>
 
@@ -417,7 +488,15 @@
     <div id="emptyState" class="empty-state" style="display:none;"></div>
   </div>
 
-  <div class="footer-note">Generates local Docker configs only — no cloud resources are created.</div>
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-text">Docker configs & Alibaba Cloud Terraform — validated and self-healing.</div>
+    <div class="footer-links">
+      <a href="/analytics">Analytics</a>
+      <a href="/health">Health</a>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -434,6 +513,32 @@
   let mediaRecorder, audioChunks = [];
   let audioCtx, analyser, dataArray, rafId, stream;
 
+  // ── Pipeline state ──
+  function setPipeline(step) {
+    const steps = ['pipe-record','pipe-transcribe','pipe-extract','pipe-generate','pipe-validate'];
+    const lines = ['line-1','line-2','line-3','line-4'];
+    const idx = steps.indexOf(step);
+    steps.forEach((s, i) => {
+      const el = document.getElementById(s);
+      el.className = 'pipe-step' + (i < idx ? ' done' : i === idx ? ' active' : '');
+      if (i < idx) el.querySelector('.pipe-icon').innerHTML = '✓';
+    });
+    lines.forEach((l, i) => {
+      document.getElementById(l).className = 'pipe-line' + (i < idx ? ' done' : '');
+    });
+  }
+  function resetPipeline() {
+    ['pipe-record','pipe-transcribe','pipe-extract','pipe-generate','pipe-validate'].forEach((s, i) => {
+      const el = document.getElementById(s);
+      el.className = 'pipe-step';
+      el.querySelector('.pipe-icon').textContent = i + 1;
+    });
+    ['line-1','line-2','line-3','line-4'].forEach(l => {
+      document.getElementById(l).className = 'pipe-line';
+    });
+  }
+
+  // ── Canvas setup ──
   function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
     canvas.width = rect.width * devicePixelRatio;
@@ -445,12 +550,14 @@
   function drawIdle() {
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
-    const barCount = 40;
+    const barCount = 48;
     const gap = w / barCount;
-    ctx.fillStyle = '#232833';
     for (let i = 0; i < barCount; i++) {
-      const barH = h * 0.06;
-      ctx.fillRect(i * gap + gap * 0.3, h / 2 - barH / 2, gap * 0.4, barH);
+      const barH = Math.max(2, h * 0.04);
+      ctx.fillStyle = '#27272a';
+      ctx.beginPath();
+      ctx.roundRect(i * gap + gap * 0.25, h / 2 - barH / 2, gap * 0.5, barH, 1.5);
+      ctx.fill();
     }
   }
   drawIdle();
@@ -459,38 +566,45 @@
     analyser.getByteFrequencyData(dataArray);
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
-    const barCount = 40;
+    const barCount = 48;
     const gap = w / barCount;
     const step = Math.floor(dataArray.length / barCount);
     for (let i = 0; i < barCount; i++) {
       const value = dataArray[i * step] / 255;
-      const barH = Math.max(h * 0.06, value * h * 0.85);
-      ctx.fillStyle = '#f2b84b';
-      ctx.globalAlpha = 0.55 + value * 0.45;
-      ctx.fillRect(i * gap + gap * 0.3, h / 2 - barH / 2, gap * 0.4, barH);
+      const barH = Math.max(3, value * h * 0.8);
+      const gradient = ctx.createLinearGradient(0, h / 2 - barH / 2, 0, h / 2 + barH / 2);
+      gradient.addColorStop(0, '#f59e0b');
+      gradient.addColorStop(1, '#d97706');
+      ctx.fillStyle = gradient;
+      ctx.globalAlpha = 0.5 + value * 0.5;
+      ctx.beginPath();
+      ctx.roundRect(i * gap + gap * 0.25, h / 2 - barH / 2, gap * 0.5, barH, 2);
+      ctx.fill();
     }
     ctx.globalAlpha = 1;
     rafId = requestAnimationFrame(drawLive);
   }
 
+  // ── Helpers ──
   function setStatus(text, cls) {
     statusEl.textContent = text;
-    statusEl.className = 'status-line' + (cls ? ' ' + cls : '');
+    statusEl.className = 'status-text' + (cls ? ' ' + cls : '');
   }
 
   function escapeHtml(str) {
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
+  // ── Syntax highlighters ──
   function highlightDockerfile(text) {
-    const kws = ['FROM','WORKDIR','COPY','RUN','EXPOSE','CMD','ENV','ENTRYPOINT'];
+    const kws = ['FROM','WORKDIR','COPY','RUN','EXPOSE','CMD','ENV','ENTRYPOINT','ARG','LABEL','ADD','VOLUME','USER','SHELL'];
     return escapeHtml(text).split('\n').map(line => {
       const match = line.match(/^([A-Z]+)(\s.*)?$/);
       if (match && kws.includes(match[1])) {
         return `<span class="tok-kw">${match[1]}</span><span class="tok-plain">${match[2] || ''}</span>`;
       }
       return `<span class="tok-plain">${line}</span>`;
-    }).join('\n');
+    }).map(l => `<span class="line">${l}</span>`).join('');
   }
 
   function highlightYaml(text) {
@@ -499,19 +613,47 @@
       if (match) {
         return `${match[1]}<span class="tok-key">${match[2]}</span>:<span class="tok-plain">${match[3]}</span>`;
       }
-      if (/^\s*-\s/.test(line)) {
-        return `<span class="tok-str">${line}</span>`;
-      }
+      if (/^\s*-\s/.test(line)) return `<span class="tok-str">${line}</span>`;
+      if (/^\s*#/.test(line)) return `<span class="tok-cmt">${line}</span>`;
       return `<span class="tok-plain">${line}</span>`;
-    }).join('\n');
+    }).map(l => `<span class="line">${l}</span>`).join('');
   }
 
-  function fileCard({ dotClass, filename, content, highlighter }) {
+  function highlightHCL(text) {
+    const kws = ['resource','variable','provider','data','output','module','locals','terraform'];
+    return escapeHtml(text).split('\n').map(line => {
+      if (/^\s*#/.test(line)) return `<span class="tok-cmt">${line}</span>`;
+      const blockMatch = line.match(/^(\s*)(resource|variable|provider|data|output|module|locals|terraform)(\s.*)?$/);
+      if (blockMatch && kws.includes(blockMatch[2])) {
+        return `${blockMatch[1]}<span class="tok-kw">${blockMatch[2]}</span><span class="tok-plain">${blockMatch[3] || ''}</span>`;
+      }
+      const attrMatch = line.match(/^(\s*)([\w.]+)(\s*=\s*)(.*)?$/);
+      if (attrMatch) {
+        const val = attrMatch[4] || '';
+        const valClass = /"/.test(val) ? 'tok-str' : 'tok-plain';
+        return `${attrMatch[1]}<span class="tok-key">${attrMatch[2]}</span>${attrMatch[3]}<span class="${valClass}">${val}</span>`;
+      }
+      return `<span class="tok-plain">${line}</span>`;
+    }).map(l => `<span class="line">${l}</span>`).join('');
+  }
+
+  // ── File card builder ──
+  function fileCard({ iconClass, iconText, filename, content, highlighter, validation }) {
+    let badgeHtml = '';
+    if (validation) {
+      if (!validation.tool_available) badgeHtml = '<span class="file-badge na">N/A</span>';
+      else if (validation.healing_count > 0 && validation.valid) badgeHtml = `<span class="file-badge healed">healed ${validation.healing_count}x</span>`;
+      else if (validation.valid) badgeHtml = '<span class="file-badge pass">valid</span>';
+      else badgeHtml = '<span class="file-badge fail">invalid</span>';
+    }
     const wrap = document.createElement('div');
     wrap.className = 'file-card';
     wrap.innerHTML = `
       <div class="file-head">
-        <div class="file-name"><span class="file-dot ${dotClass}"></span>${filename}</div>
+        <div class="file-name">
+          <span class="file-icon ${iconClass}">${iconText}</span>
+          ${filename}${badgeHtml}
+        </div>
         <div class="file-actions">
           <button class="copy-btn" title="Copy">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
@@ -526,27 +668,25 @@
     wrap.querySelector('.copy-btn').addEventListener('click', (e) => {
       navigator.clipboard.writeText(content);
       const btn = e.currentTarget;
-      const original = btn.innerHTML;
-      btn.innerHTML = '✓';
-      setTimeout(() => btn.innerHTML = original, 1200);
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+      setTimeout(() => btn.innerHTML = orig, 1200);
     });
     wrap.querySelector('.dl-btn').addEventListener('click', () => {
       const blob = new Blob([content], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = filename;
-      a.click();
+      a.href = url; a.download = filename; a.click();
       URL.revokeObjectURL(url);
     });
     return wrap;
   }
 
   function updateChips(data) {
-    const combined = ((data.dockerfile || '') + '\n' + (data.docker_compose || '')).toLowerCase();
+    const combined = ((data.dockerfile || '') + '\n' + (data.docker_compose || '') + '\n' + (data.terraform || '')).toLowerCase();
     chipRow.querySelectorAll('.chip').forEach(chip => {
       const keys = chip.dataset.key.split(',');
-      const matched = keys.some(k => combined.includes(k));
-      chip.classList.toggle('active', matched);
+      chip.classList.toggle('active', keys.some(k => combined.includes(k)));
     });
   }
 
@@ -554,42 +694,75 @@
     resultsEl.innerHTML = '';
     emptyStateEl.style.display = 'none';
 
-    const hasDockerfile = !!data.dockerfile;
-    const hasCompose = !!data.docker_compose;
+    const hasD = !!data.dockerfile, hasC = !!data.docker_compose, hasT = !!data.terraform;
+    const v = data.validation || {};
 
-    if (hasDockerfile) {
-      resultsEl.appendChild(fileCard({
-        dotClass: 'docker',
-        filename: 'Dockerfile',
-        content: data.dockerfile,
-        highlighter: highlightDockerfile
-      }));
-    }
-    if (hasCompose) {
-      resultsEl.appendChild(fileCard({
-        dotClass: 'compose',
-        filename: 'docker-compose.yml',
-        content: data.docker_compose,
-        highlighter: highlightYaml
-      }));
-    }
+    if (hasD) resultsEl.appendChild(fileCard({ iconClass:'docker', iconText:'D', filename:'Dockerfile', content:data.dockerfile, highlighter:highlightDockerfile, validation:v.dockerfile }));
+    if (hasC) resultsEl.appendChild(fileCard({ iconClass:'compose', iconText:'C', filename:'docker-compose.yml', content:data.docker_compose, highlighter:highlightYaml, validation:null }));
+    if (hasT) resultsEl.appendChild(fileCard({ iconClass:'terraform', iconText:'T', filename:'main.tf', content:data.terraform, highlighter:highlightHCL, validation:v.terraform }));
 
-    if (!hasDockerfile && !hasCompose) {
+    if (!hasD && !hasC && !hasT) {
       emptyStateEl.style.display = 'flex';
       emptyStateEl.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="7" rx="1.5"></rect><rect x="3" y="13" width="18" height="7" rx="1.5"></rect><circle cx="7" cy="7.5" r="0.8" fill="currentColor" stroke="none"></circle><circle cx="7" cy="16.5" r="0.8" fill="currentColor" stroke="none"></circle></svg>
-        <span>No supported services detected. Try naming one directly, like <strong>Postgres</strong>, <strong>Redis</strong>, or <strong>Django</strong>.</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="7" rx="2"></rect><rect x="3" y="13" width="18" height="7" rx="2"></rect><circle cx="7" cy="7.5" r="1" fill="currentColor" stroke="none"></circle><circle cx="7" cy="16.5" r="1" fill="currentColor" stroke="none"></circle></svg>
+        <span>No services detected. Try naming one directly, like <strong>Postgres</strong>, <strong>Redis</strong>, or <strong>Django</strong>.</span>
       `;
-      updateChips({ dockerfile: '', docker_compose: '' });
+      updateChips({ dockerfile: '', docker_compose: '', terraform: '' });
     } else {
       updateChips(data);
     }
   }
 
+  // ── Audio conversion: WebM → WAV (16-bit PCM, proper RIFF header) ──
+  async function webmToWav(webmBlob) {
+    const arrayBuffer = await webmBlob.arrayBuffer();
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    audioCtx.close();
+
+    const numChannels = audioBuffer.numberOfChannels;
+    const sampleRate = audioBuffer.sampleRate;
+    const length = audioBuffer.length;
+    const wavBuffer = new ArrayBuffer(44 + length * numChannels * 2);
+    const view = new DataView(wavBuffer);
+
+    function writeStr(offset, str) {
+      for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    }
+
+    writeStr(0, 'RIFF');
+    view.setUint32(4, 36 + length * numChannels * 2, true);
+    writeStr(8, 'WAVE');
+    writeStr(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);              // PCM format
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * numChannels * 2, true);
+    view.setUint16(32, numChannels * 2, true);
+    view.setUint16(34, 16, true);              // 16-bit
+    writeStr(36, 'data');
+    view.setUint32(40, length * numChannels * 2, true);
+
+    const channels = [];
+    for (let ch = 0; ch < numChannels; ch++) channels.push(audioBuffer.getChannelData(ch));
+
+    let offset = 44;
+    for (let i = 0; i < length; i++) {
+      for (let ch = 0; ch < numChannels; ch++) {
+        const sample = Math.max(-1, Math.min(1, channels[ch][i]));
+        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+        offset += 2;
+      }
+    }
+
+    return { blob: new Blob([wavBuffer], { type: 'audio/wav' }), duration: length / sampleRate };
+  }
+
+  // ── Recording flow ──
   async function startRecording() {
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const source = audioCtx.createMediaStreamSource(stream);
       analyser = audioCtx.createAnalyser();
@@ -602,73 +775,99 @@
       audioChunks = [];
       mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const webmBlob = new Blob(audioChunks, { type: 'audio/webm' });
         stream.getTracks().forEach(t => t.stop());
         cancelAnimationFrame(rafId);
         audioCtx.close();
         drawIdle();
-        await sendAudio(audioBlob);
-      };
 
+        // Convert WebM → WAV for Groq Whisper compatibility
+        const { blob: wavBlob, duration } = await webmToWav(webmBlob);
+        if (duration < 0.5) {
+          setStatus('Recording too short — hold the mic longer', 'error');
+          micBtn.classList.remove('recording', 'processing');
+          resetPipeline();
+          return;
+        }
+        await sendAudio(wavBlob);
+      };
       mediaRecorder.start();
       micBtn.classList.add('recording');
-      setStatus('Listening…', 'recording');
+      setStatus('Listening...', 'recording');
       transcriptEl.style.display = 'none';
       unsupportedEl.innerHTML = '';
+      resetPipeline();
+      setPipeline('pipe-record');
     } catch (err) {
       setStatus('Microphone access denied', 'error');
     }
   }
 
   function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
-    }
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
     micBtn.classList.remove('recording');
     micBtn.classList.add('processing');
-    setStatus('Transcribing…');
+    setStatus('Processing audio...', '');
+    setPipeline('pipe-transcribe');
   }
 
   async function sendAudio(audioBlob) {
     const formData = new FormData();
-    formData.append('audio', audioBlob, 'command.webm');
+    formData.append('audio', audioBlob, 'command.wav');
 
     try {
-      const response = await fetch('/generate-config', {
-        method: 'POST',
-        body: formData
-      });
+      setPipeline('pipe-extract');
+      setStatus('Extracting intent & generating configs...', '');
 
+      const response = await fetch('/generate-config', { method: 'POST', body: formData });
       if (!response.ok) {
         throw new Error(response.status === 502
-          ? 'Couldn\'t reach the transcription service. Try again.'
-          : `Request failed (${response.status}). Try again.`);
+          ? 'Service unreachable. Try again.'
+          : `Request failed (${response.status}).`);
       }
 
       const data = await response.json();
       micBtn.classList.remove('processing');
+      setPipeline('pipe-validate');
 
       const transcript = (data.transcript || '').trim();
       if (transcript) {
         transcriptEl.style.display = 'block';
-        transcriptEl.innerHTML = `"<span>${escapeHtml(transcript)}</span>"`;
+        transcriptEl.innerHTML = `<em>"${escapeHtml(transcript)}"</em>`;
       }
 
       if (data.unsupported && data.unsupported.length) {
-        unsupportedEl.innerHTML = `<div class="unsupported-chip">Not supported yet: ${data.unsupported.map(escapeHtml).join(', ')}</div>`;
+        unsupportedEl.innerHTML = `<div class="unsupported-pill">Not supported: ${data.unsupported.map(escapeHtml).join(', ')}</div>`;
       } else {
         unsupportedEl.innerHTML = '';
       }
 
-      if (data.dockerfile || data.docker_compose) {
-        setStatus('Config generated', 'ready');
+      if (data.dockerfile || data.docker_compose || data.terraform) {
+        const parts = [];
+        if (data.dockerfile || data.docker_compose) parts.push('Docker');
+        if (data.terraform) parts.push('Terraform');
+        setStatus(parts.join(' + ') + ' generated successfully', 'ready');
+        setPipeline('pipe-validate');
+        // Mark all steps as done
+        setTimeout(() => {
+          ['pipe-record','pipe-transcribe','pipe-extract','pipe-generate','pipe-validate'].forEach((s, i) => {
+            const el = document.getElementById(s);
+            el.className = 'pipe-step done';
+            el.querySelector('.pipe-icon').innerHTML = '✓';
+          });
+          ['line-1','line-2','line-3','line-4'].forEach(l => {
+            document.getElementById(l).className = 'pipe-line done';
+          });
+        }, 300);
       } else {
-        setStatus('Didn\'t catch a service name');
+        setStatus('No service name detected');
+        resetPipeline();
       }
       renderResults(data);
     } catch (err) {
       micBtn.classList.remove('processing');
       setStatus(err.message, 'error');
+      resetPipeline();
     }
   }
 

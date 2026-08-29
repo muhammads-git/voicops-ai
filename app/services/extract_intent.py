@@ -18,6 +18,8 @@ If there are no unsupported services, return an empty list for "unsupported".
 Set "deploy_cloud" to true only when the user explicitly mentions cloud deployment, Alibaba Cloud, cloud infrastructure, "on the cloud", or "deploy to the cloud". Otherwise set it to false."""
 ## Coreections are for the LLM to discover the right word...
 KNOWN_CORRECTIONS = {
+    "nordjust" :"node.js",
+    "notjs":"node.js",
     "not just": "node.js",
     "node js": "node.js",
     "postgres equal": "postgresql",

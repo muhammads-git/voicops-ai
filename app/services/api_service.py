@@ -11,7 +11,7 @@ client = AsyncGroq(api_key=API_KEY)
 async def speech_to_text(audio_bytes: bytes) -> str:
     try:
         transcription = await client.audio.transcriptions.create(
-            file=("command.webm", audio_bytes),
+            file=("command.wav", audio_bytes),
             model="whisper-large-v3-turbo"
         )
         return transcription.text

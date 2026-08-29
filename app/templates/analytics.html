@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoicOps — Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #09090b;
+    --surface: #111113;
+    --surface-2: #18181b;
+    --surface-3: #1e1e22;
+    --border: #27272a;
+    --border-subtle: #1e1e22;
+    --text: #fafafa;
+    --text-secondary: #a1a1aa;
+    --text-muted: #52525b;
+    --text-dim: #3f3f46;
+    --accent: #f59e0b;
+    --accent-soft: rgba(245, 158, 11, 0.1);
+    --emerald: #10b981;
+    --emerald-soft: rgba(16, 185, 129, 0.1);
+    --blue: #3b82f6;
+    --blue-soft: rgba(59, 130, 246, 0.1);
+    --violet: #8b5cf6;
+    --violet-soft: rgba(139, 92, 246, 0.08);
+    --red: #ef4444;
+    --red-soft: rgba(239, 68, 68, 0.1);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .bg-mesh {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 10%, rgba(245,158,11,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 20%, rgba(139,92,246,0.03) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 90%, rgba(59,130,246,0.03) 0%, transparent 60%);
+  }
+
+  /* ── Navigation ── */
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; height: 56px;
+    background: rgba(9,9,11,0.8);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .nav-brand {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; color: var(--text);
+  }
+  .nav-logo {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--accent), #d97706);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 20px rgba(245,158,11,0.15);
+  }
+  .nav-logo svg { width: 16px; height: 16px; }
+  .nav-name { font-weight: 600; font-size: 15px; letter-spacing: -0.02em; }
+  .nav-tag {
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    color: var(--text-muted); background: var(--surface-2);
+    padding: 2px 8px; border-radius: 999px;
+    border: 1px solid var(--border); margin-left: 4px;
+  }
+  .nav-links { display: flex; align-items: center; gap: 4px; }
+  .nav-link {
+    font-size: 13px; font-weight: 500; color: var(--text-secondary);
+    text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm);
+    transition: color 0.15s, background 0.15s;
+  }
+  .nav-link:hover { color: var(--text); background: var(--surface-2); }
+  .nav-link.active { color: var(--text); background: var(--surface-2); }
+
+  /* ── Layout ── */
+  .main {
+    position: relative; z-index: 1;
+    max-width: 960px; margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 32px;
+  }
+  .page-header h1 {
+    font-size: 24px; font-weight: 700; letter-spacing: -0.03em;
+  }
+  .live-indicator {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 11px; color: var(--text-muted);
+  }
+  .live-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--emerald);
+    box-shadow: 0 0 8px rgba(16,185,129,0.4);
+    animation: blink 2s ease-in-out infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* ── Stat cards ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 700px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .stat-card:hover { border-color: var(--text-dim); }
+  .stat-label {
+    font-size: 12px; font-weight: 500; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+  .stat-value {
+    font-size: 32px; font-weight: 700; letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .stat-value.c-default { color: var(--text); }
+  .stat-value.c-emerald { color: var(--emerald); }
+  .stat-value.c-accent { color: var(--accent); }
+  .stat-value.c-blue { color: var(--blue); }
+
+  /* ── Table ── */
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .table-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .table-head h2 { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: left; padding: 10px 20px;
+    font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+    color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  tbody td {
+    padding: 12px 20px; font-size: 13px;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-secondary); vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.015); }
+
+  .badge {
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    padding: 3px 8px; border-radius: 999px;
+  }
+  .badge.success { background: var(--emerald-soft); color: var(--emerald); }
+  .badge.failed { background: var(--red-soft); color: var(--red); }
+
+  .mono { font-family: var(--mono); font-size: 12px; }
+  .truncate {
+    max-width: 220px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .empty-row {
+    padding: 48px 20px; text-align: center;
+    color: var(--text-dim); font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-mesh"></div>
+
+<nav class="nav">
+  <a href="/" class="nav-brand">
+    <div class="nav-logo">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M7 4v16M12 8v8M17 6v12" stroke="#09090b" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="nav-name">VoicOps</span>
+    <span class="nav-tag">v0.2</span>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Generate</a>
+    <a href="/analytics" class="nav-link active">Analytics</a>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="page-header">
+    <h1>Analytics</h1>
+    <div class="live-indicator">
+      <div class="live-dot"></div>
+      <span>Auto-refresh 10s</span>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Requests</div>
+      <div class="stat-value c-default" id="totalRequests">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Success Rate</div>
+      <div class="stat-value c-emerald" id="successRate">0%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Self-Heals</div>
+      <div class="stat-value c-accent" id="avgHealing">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Response</div>
+      <div class="stat-value c-blue" id="avgTime">0s</div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-head">
+      <h2>Recent Requests</h2>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Transcript</th>
+          <th>Status</th>
+          <th>Healing</th>
+          <th>Duration</th>
+        </tr>
+      </thead>
+      <tbody id="recentBody">
+        <tr><td colspan="5" class="empty-row">No requests yet. Record your first voice command to get started.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function fmtTime(iso) {
+    if (!iso) return '-';
+    return new Date(iso).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  }
+
+  function render(data) {
+    document.getElementById('totalRequests').textContent = data.total_requests;
+    document.getElementById('successRate').textContent = data.success_rate + '%';
+    document.getElementById('avgHealing').textContent = data.avg_healing_count;
+    document.getElementById('avgTime').textContent = data.avg_time_taken + 's';
+
+    const tb = document.getElementById('recentBody');
+    if (!data.recent_requests || !data.recent_requests.length) {
+      tb.innerHTML = '<tr><td colspan="5" class="empty-row">No requests yet. Record your first voice command to get started.</td></tr>';
+      return;
+    }
+    tb.innerHTML = data.recent_requests.map(r => `
+      <tr>
+        <td class="mono">${fmtTime(r.created_at)}</td>
+        <td class="truncate" title="${esc(r.transcript)}">${esc(r.transcript) || '-'}</td>
+        <td><span class="badge ${r.status}">${r.status}</span></td>
+        <td class="mono">${r.healing_count}</td>
+        <td class="mono">${r.time_taken}s</td>
+      </tr>
+    `).join('');
+  }
+
+  async function fetchAnalytics() {
+    try {
+      const r = await fetch('/api/analytics');
+      if (!r.ok) throw new Error();
+      render(await r.json());
+    } catch(e) { console.error('Analytics error:', e); }
+  }
+
+  fetchAnalytics();
+  setInterval(fetchAnalytics, 10000);
+</script>
+
+</body>
+</html>

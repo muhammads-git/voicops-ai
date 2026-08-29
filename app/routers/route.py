@@ -35,11 +35,14 @@ async def generate_config(audio: UploadFile):
 
     # Step 2: transcript -> structured intent
     try:
+        print(transcript)
         intent = await extract_intent(normalize_transcript(transcript))
+        
     except Exception as e:
         raise HTTPException(status_code=502, detail=str(e))
 
     try:
+        print(intent['services'], intent['unsupported'])
         configs = build_config(intent['services'])
     except Exception as e:
         raise HTTPException(status_code=502, detail=str(e))

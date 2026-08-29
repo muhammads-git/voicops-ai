@@ -8,17 +8,21 @@ logger = logging.getLogger(__name__)
 
 SUPPORTED_SERVICES = {"postgresql", "mysql", "mongodb", "redis", "fastapi", "nodejs", "docker", "flask", "django"}
 SYSTEM_PROMPT = """Extract only known infrastructure services mentioned in the user's request.
+Also detect if the user wants cloud deployment (Alibaba Cloud, cloud hosting, deploy to cloud, on the cloud).
 Respond only with JSON in this exact shape:
-{"services": ["postgresql", "redis"], "unsupported": ["kafka"]}
+{"services": ["postgresql", "redis"], "unsupported": ["kafka"], "deploy_cloud": true}
 
 Only use these values in "services": postgresql, mysql, mongodb, redis, fastapi, nodejs, flask, django, docker.
 Any service mentioned that is NOT in that list goes into "unsupported" instead, using the user's own word for it.
-If there are no unsupported services, return an empty list for "unsupported"."""
+If there are no unsupported services, return an empty list for "unsupported".
+Set "deploy_cloud" to true only when the user explicitly mentions cloud deployment, Alibaba Cloud, cloud infrastructure, "on the cloud", or "deploy to the cloud". Otherwise set it to false."""
 ## Coreections are for the LLM to discover the right word...
 KNOWN_CORRECTIONS = {
     "not just": "node.js",
     "node js": "node.js",
     "postgres equal": "postgresql",
+    "ali baba": "alibaba",
+    "ali cloud": "alibaba cloud",
     # add more as you discover them during testing
 }
 
@@ -78,7 +82,13 @@ async def extract_intent(transcript: str) -> dict:
     valid_services = [s for s in services if s in SUPPORTED_SERVICES]
     leaked_unsupported = [s for s in services if s not in SUPPORTED_SERVICES]
 
+    deploy_cloud = parsed.get("deploy_cloud", False)
+    # Defensive: ensure it's actually a boolean
+    if not isinstance(deploy_cloud, bool):
+        deploy_cloud = False
+
     return {
         "services": valid_services,
         "unsupported": unsupported + leaked_unsupported,
+        "deploy_cloud": deploy_cloud,
     }

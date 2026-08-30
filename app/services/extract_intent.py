@@ -59,6 +59,7 @@ KNOWN_CORRECTIONS = {
     "red us": "redis",
     "radish": "redis",
     "reddish": "redis",
+    "rattish": "redis",
     # fastapi
     "fast api": "fastapi",
     "fast appy": "fastapi",

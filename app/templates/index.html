@@ -271,11 +271,16 @@
   .status-text.error { color: var(--red); }
   .status-text.ready { color: var(--emerald); }
 
-  .transcript-text {
-    font-size: 13px; color: var(--text-secondary);
+  .transcript-heard {
+    font-size: 12px; color: var(--red); opacity: 0.7;
     line-height: 1.5; margin-top: 6px;
   }
-  .transcript-text em { font-style: normal; color: var(--text); }
+  .transcript-heard em { font-style: italic; }
+  .transcript-understood {
+    font-size: 13px; color: var(--emerald);
+    line-height: 1.5; margin-top: 4px;
+  }
+  .transcript-understood em { font-style: normal; font-weight: 500; }
 
   .unsupported-pill {
     display: inline-flex; align-items: center; gap: 5px;
@@ -830,10 +835,19 @@
       micBtn.classList.remove('processing');
       setPipeline('pipe-validate');
 
-      const transcript = (data.transcript || '').trim();
-      if (transcript) {
+      const rawTranscript = (data.transcript || '').trim();
+      const corrected = (data.corrected_transcript || '').trim();
+      const wasCorrected = rawTranscript && corrected && rawTranscript.toLowerCase() !== corrected.toLowerCase();
+
+      if (rawTranscript) {
         transcriptEl.style.display = 'block';
-        transcriptEl.innerHTML = `<em>"${escapeHtml(transcript)}"</em>`;
+        if (wasCorrected) {
+          transcriptEl.innerHTML =
+            `<div class="transcript-heard">Heard: <em>"${escapeHtml(rawTranscript)}"</em></div>` +
+            `<div class="transcript-understood">Understood: <em>"${escapeHtml(corrected)}"</em></div>`;
+        } else {
+          transcriptEl.innerHTML = `<em>"${escapeHtml(rawTranscript)}"</em>`;
+        }
       }
 
       if (data.unsupported && data.unsupported.length) {

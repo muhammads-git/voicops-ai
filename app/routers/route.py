@@ -132,8 +132,11 @@ async def generate_config(audio: UploadFile):
     except Exception as e:
         logger.error(f"Failed to log telemetry: {e}")
 
+    corrected_transcript = normalize_transcript(transcript)
+
     return {
         "transcript": transcript,
+        "corrected_transcript": corrected_transcript,
         "unsupported": intent["unsupported"],
         "dockerfile": configs["dockerfile"],
         "docker_compose": configs["docker_compose"],

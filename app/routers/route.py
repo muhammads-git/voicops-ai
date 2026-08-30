@@ -6,7 +6,7 @@ import logging
 import os
 from pathlib import Path
 from sqlalchemy import select, func
-from app.services.extract_intent import extract_intent,normalize_transcript
+from app.services.extract_intent import extract_intent,normalize_transcript,build_corrected_transcript
 from app.services.build_configs import build_config
 from app.services.build_terraform import build_terraform
 from app.services.self_healing import heal_dockerfile, heal_terraform
@@ -29,12 +29,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 4. Now accurately point to the templates folder
 HTML_PATH = BASE_DIR / "templates" / "index.html"
+GENERATE_PATH = BASE_DIR / "templates" / "generate.html"
 ANALYTICS_PATH = BASE_DIR / "templates" / "analytics.html"
 
 
 @router.get("/")
 async def serve_frontend():
     return FileResponse(HTML_PATH)
+
+
+@router.get("/generate")
+async def serve_generate():
+    return FileResponse(GENERATE_PATH)
 
 @router.post('/generate-config')
 async def generate_config(audio: UploadFile):
@@ -132,7 +138,7 @@ async def generate_config(audio: UploadFile):
     except Exception as e:
         logger.error(f"Failed to log telemetry: {e}")
 
-    corrected_transcript = normalize_transcript(transcript)
+    corrected_transcript = build_corrected_transcript(transcript, intent['services'])
 
     return {
         "transcript": transcript,

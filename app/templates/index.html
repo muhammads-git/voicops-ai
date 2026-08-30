@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VoicOps — Voice-to-Infrastructure</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #09090b;
@@ -28,25 +28,18 @@
     --violet: #8b5cf6;
     --violet-soft: rgba(139, 92, 246, 0.08);
     --red: #ef4444;
-    --red-soft: rgba(239, 68, 68, 0.1);
     --radius: 12px;
     --radius-lg: 16px;
     --radius-sm: 8px;
     --font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { height: 100%; }
-
+  html { scroll-behavior: smooth; }
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font);
-    min-height: 100vh;
-    overflow-x: hidden;
+    background: var(--bg); color: var(--text);
+    font-family: var(--font); min-height: 100vh;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
 
   /* ── Ambient background ── */
@@ -58,7 +51,7 @@
       radial-gradient(ellipse 70% 50% at 50% 90%, rgba(59,130,246,0.03) 0%, transparent 60%);
   }
   .bg-grid {
-    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.3;
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.25;
     background-image:
       linear-gradient(var(--border-subtle) 1px, transparent 1px),
       linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
@@ -71,15 +64,12 @@
   .nav {
     position: sticky; top: 0; z-index: 50;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 24px; height: 56px;
+    padding: 0 32px; height: 56px;
     background: rgba(9,9,11,0.8);
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border-subtle);
   }
-  .nav-brand {
-    display: flex; align-items: center; gap: 10px;
-    text-decoration: none; color: var(--text);
-  }
+  .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
   .nav-logo {
     width: 28px; height: 28px; border-radius: 7px;
     background: linear-gradient(135deg, var(--accent), #d97706);
@@ -87,15 +77,11 @@
     box-shadow: 0 0 20px var(--accent-glow);
   }
   .nav-logo svg { width: 16px; height: 16px; }
-  .nav-name {
-    font-weight: 600; font-size: 15px; letter-spacing: -0.02em;
-  }
+  .nav-name { font-weight: 600; font-size: 15px; letter-spacing: -0.02em; }
   .nav-tag {
     font-family: var(--mono); font-size: 10px; font-weight: 500;
     color: var(--text-muted); background: var(--surface-2);
-    padding: 2px 8px; border-radius: 999px;
-    border: 1px solid var(--border);
-    margin-left: 4px;
+    padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); margin-left: 4px;
   }
   .nav-links { display: flex; align-items: center; gap: 4px; }
   .nav-link {
@@ -106,307 +92,180 @@
   .nav-link:hover { color: var(--text); background: var(--surface-2); }
   .nav-link.active { color: var(--text); background: var(--surface-2); }
 
-  /* ── Main layout ── */
-  .main {
-    position: relative; z-index: 1;
-    max-width: 640px; margin: 0 auto;
-    padding: 48px 20px 80px;
-  }
-
   /* ── Hero ── */
-  .hero { text-align: center; margin-bottom: 40px; }
+  .hero {
+    position: relative; z-index: 1;
+    text-align: center; padding: 100px 24px 80px;
+  }
   .hero-badge {
     display: inline-flex; align-items: center; gap: 6px;
     font-family: var(--mono); font-size: 11px; font-weight: 500;
     color: var(--accent); background: var(--accent-soft);
     border: 1px solid rgba(245,158,11,0.15);
-    padding: 4px 12px; border-radius: 999px;
-    margin-bottom: 20px;
+    padding: 5px 14px; border-radius: 999px; margin-bottom: 28px;
   }
   .hero-badge::before {
     content: ''; width: 6px; height: 6px; border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 8px var(--accent);
+    background: var(--accent); box-shadow: 0 0 8px var(--accent);
     animation: pulse-dot 2s ease-in-out infinite;
   }
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
-  }
+  @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
   .hero h1 {
-    font-size: 36px; font-weight: 700; letter-spacing: -0.035em;
-    line-height: 1.15; margin-bottom: 12px;
+    font-size: 56px; font-weight: 800; letter-spacing: -0.04em;
+    line-height: 1.1; margin-bottom: 20px;
     background: linear-gradient(180deg, var(--text) 0%, var(--text-secondary) 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .hero h1 .accent-word {
+    background: linear-gradient(135deg, var(--accent), #fbbf24);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
   .hero p {
-    font-size: 15px; line-height: 1.6; color: var(--text-secondary);
-    max-width: 420px; margin: 0 auto;
+    font-size: 17px; line-height: 1.65; color: var(--text-secondary);
+    max-width: 520px; margin: 0 auto 40px;
+  }
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 32px; border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--accent), #d97706);
+    color: var(--bg); font-weight: 600; font-size: 15px;
+    text-decoration: none; border: none; cursor: pointer;
+    box-shadow: 0 0 30px var(--accent-glow), 0 4px 12px rgba(0,0,0,0.3);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 0 40px var(--accent-glow), 0 8px 20px rgba(0,0,0,0.4); }
+  .hero-cta svg { width: 18px; height: 18px; }
+  .hero-sub {
+    margin-top: 16px; font-size: 13px; color: var(--text-dim);
   }
 
-  /* ── Pipeline steps ── */
-  .pipeline {
+  /* ── Features ── */
+  .section {
+    position: relative; z-index: 1;
+    max-width: 960px; margin: 0 auto; padding: 60px 24px;
+  }
+  .section-label {
+    text-align: center; font-family: var(--mono); font-size: 11px; font-weight: 500;
+    color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;
+  }
+  .section-title {
+    text-align: center; font-size: 32px; font-weight: 700; letter-spacing: -0.03em;
+    margin-bottom: 48px;
+    background: linear-gradient(180deg, var(--text) 0%, var(--text-secondary) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .features-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .feature-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 28px 24px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .feature-card:hover {
+    border-color: rgba(245,158,11,0.2);
+    box-shadow: 0 0 30px rgba(245,158,11,0.03);
+  }
+  .feature-icon {
+    width: 40px; height: 40px; border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
-    gap: 0; margin-bottom: 32px;
-    padding: 0 10px;
+    font-size: 18px; margin-bottom: 16px;
   }
-  .pipe-step {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 11.5px; font-weight: 500; color: var(--text-dim);
-    transition: color 0.4s;
-    white-space: nowrap;
+  .feature-icon.amber { background: var(--accent-soft); }
+  .feature-icon.blue { background: var(--blue-soft); }
+  .feature-icon.emerald { background: var(--emerald-soft); }
+  .feature-icon.violet { background: var(--violet-soft); }
+  .feature-card h3 {
+    font-size: 16px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 8px;
   }
-  .pipe-step .pipe-icon {
-    width: 20px; height: 20px; border-radius: 50%;
-    border: 1.5px solid var(--border);
+  .feature-card p {
+    font-size: 13.5px; line-height: 1.6; color: var(--text-secondary);
+  }
+
+  /* ── How it works ── */
+  .steps {
+    display: flex; gap: 0; justify-content: center; flex-wrap: wrap;
+  }
+  .step {
+    flex: 1; min-width: 180px; max-width: 220px;
+    text-align: center; padding: 0 16px;
+  }
+  .step-num {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 1.5px solid var(--border); margin: 0 auto 14px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 9px; font-family: var(--mono);
-    transition: border-color 0.4s, background 0.4s, color 0.4s;
-    color: var(--text-dim);
-  }
-  .pipe-step.active { color: var(--accent); }
-  .pipe-step.active .pipe-icon {
-    border-color: var(--accent); background: var(--accent-soft); color: var(--accent);
-  }
-  .pipe-step.done { color: var(--emerald); }
-  .pipe-step.done .pipe-icon {
-    border-color: var(--emerald); background: var(--emerald-soft); color: var(--emerald);
-  }
-  .pipe-line {
-    width: 24px; height: 1px; background: var(--border);
-    margin: 0 6px; flex-shrink: 0;
-    transition: background 0.4s;
-  }
-  .pipe-line.done { background: var(--emerald); }
-
-  /* ── Service chips ── */
-  .chip-row {
-    display: flex; flex-wrap: wrap; justify-content: center;
-    gap: 6px; margin-bottom: 28px;
-  }
-  .chip {
-    font-family: var(--mono); font-size: 11px; font-weight: 400;
-    color: var(--text-muted); background: transparent;
-    border: 1px solid var(--border);
-    padding: 5px 10px; border-radius: 6px;
-    transition: all 0.3s ease; cursor: default;
-  }
-  .chip.active {
-    color: var(--accent); border-color: rgba(245,158,11,0.3);
-    background: var(--accent-soft);
-    box-shadow: 0 0 12px rgba(245,158,11,0.06);
-  }
-
-  /* ── Console panel ── */
-  .console {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow:
-      0 0 0 1px rgba(255,255,255,0.02),
-      0 20px 60px -12px rgba(0,0,0,0.5),
-      0 0 80px -20px rgba(245,158,11,0.04);
-  }
-
-  /* ── Waveform area ── */
-  .wave-area {
-    padding: 32px 24px 8px;
-    display: flex; flex-direction: column; align-items: center;
-  }
-  .wave-wrap {
-    width: 100%; height: 64px; position: relative;
-    margin-bottom: 20px;
-  }
-  canvas#wave { width: 100%; height: 100%; display: block; }
-
-  /* ── Mic button ── */
-  .mic-container { position: relative; margin-bottom: 24px; }
-  #micBtn {
-    position: relative; z-index: 2;
-    width: 56px; height: 56px; border-radius: 50%;
-    border: 1.5px solid var(--border);
-    background: var(--surface-2);
+    font-family: var(--mono); font-size: 14px; font-weight: 600;
     color: var(--text-muted);
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s ease;
-    -webkit-tap-highlight-color: transparent; user-select: none;
+    transition: border-color 0.3s, color 0.3s;
   }
-  #micBtn svg { width: 20px; height: 20px; }
-  #micBtn:hover { border-color: var(--text-dim); color: var(--text-secondary); }
-  #micBtn:active { transform: scale(0.95); }
-
-  /* Pulse ring on recording */
-  .mic-ring {
-    position: absolute; inset: -6px; z-index: 1;
-    border-radius: 50%; border: 2px solid transparent;
-    transition: all 0.3s ease;
-  }
-  #micBtn.recording { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
-  #micBtn.recording ~ .mic-ring {
-    border-color: rgba(245,158,11,0.25);
-    animation: ring-pulse 1.5s ease-in-out infinite;
-  }
-  #micBtn.processing { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); }
-  #micBtn.processing ~ .mic-ring {
-    border-color: rgba(59,130,246,0.2);
-    animation: ring-pulse 1s ease-in-out infinite;
-  }
-  @keyframes ring-pulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.15); opacity: 0.4; }
+  .step:hover .step-num { border-color: var(--accent); color: var(--accent); }
+  .step h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .step p { font-size: 12.5px; line-height: 1.5; color: var(--text-muted); }
+  .step-arrow {
+    display: flex; align-items: center; padding-top: 8px;
+    color: var(--text-dim); font-size: 18px;
   }
 
-  /* ── Status area ── */
-  .status-area {
-    text-align: center; padding: 0 24px 24px;
-    min-height: 48px;
+  /* ── Services ── */
+  .services-row {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 8px; margin-top: 12px;
   }
-  .status-text {
-    font-size: 13px; font-weight: 500; color: var(--text-muted);
-    transition: color 0.25s; margin-bottom: 4px;
-  }
-  .status-text.recording { color: var(--accent); }
-  .status-text.error { color: var(--red); }
-  .status-text.ready { color: var(--emerald); }
-
-  .transcript-heard {
-    font-size: 12px; color: var(--red); opacity: 0.7;
-    line-height: 1.5; margin-top: 6px;
-  }
-  .transcript-heard em { font-style: italic; }
-  .transcript-understood {
-    font-size: 13px; color: var(--emerald);
-    line-height: 1.5; margin-top: 4px;
-  }
-  .transcript-understood em { font-style: normal; font-weight: 500; }
-
-  .unsupported-pill {
-    display: inline-flex; align-items: center; gap: 5px;
-    margin-top: 8px; padding: 4px 10px;
-    background: var(--red-soft); border: 1px solid rgba(239,68,68,0.15);
-    border-radius: 999px; font-size: 11px; color: var(--red);
+  .service-tag {
+    font-family: var(--mono); font-size: 12px; font-weight: 400;
+    color: var(--text-muted); border: 1px solid var(--border);
+    padding: 6px 14px; border-radius: 6px;
   }
 
-  /* ── Results ── */
-  .results {
-    padding: 0 16px 16px;
-    display: flex; flex-direction: column; gap: 12px;
+  /* ── Bottom CTA ── */
+  .cta-section {
+    position: relative; z-index: 1;
+    text-align: center; padding: 80px 24px 60px;
   }
-
-  .file-card {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    background: var(--bg);
-    animation: card-in 0.3s ease;
+  .cta-section h2 {
+    font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 12px;
   }
-  @keyframes card-in {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+  .cta-section p {
+    font-size: 15px; color: var(--text-secondary); margin-bottom: 32px;
   }
-
-  .file-head {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 12px;
-    background: var(--surface-2);
-    border-bottom: 1px solid var(--border-subtle);
+  .cta-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 32px; border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--accent), #d97706);
+    color: var(--bg); font-weight: 600; font-size: 15px;
+    text-decoration: none; cursor: pointer; border: none;
+    box-shadow: 0 0 30px var(--accent-glow);
+    transition: transform 0.15s, box-shadow 0.15s;
   }
-  .file-name {
-    display: flex; align-items: center; gap: 8px;
-    font-family: var(--mono); font-size: 12px; font-weight: 500;
-    color: var(--text-secondary);
-  }
-  .file-icon {
-    width: 16px; height: 16px; border-radius: 4px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 8px; font-weight: 700; font-family: var(--mono);
-  }
-  .file-icon.docker { background: var(--blue-soft); color: var(--blue); }
-  .file-icon.compose { background: var(--emerald-soft); color: var(--emerald); }
-  .file-icon.terraform { background: var(--violet-soft); color: var(--violet); }
-
-  .file-badge {
-    font-family: var(--mono); font-size: 10px; font-weight: 500;
-    padding: 2px 8px; border-radius: 999px; margin-left: 8px;
-  }
-  .file-badge.pass { background: var(--emerald-soft); color: var(--emerald); }
-  .file-badge.fail { background: var(--red-soft); color: var(--red); }
-  .file-badge.healed { background: var(--accent-soft); color: var(--accent); }
-  .file-badge.na { background: var(--surface-3); color: var(--text-dim); }
-
-  .file-actions { display: flex; gap: 2px; }
-  .file-actions button {
-    background: transparent; border: none;
-    color: var(--text-dim); cursor: pointer;
-    padding: 4px 6px; border-radius: 6px;
-    display: flex; align-items: center;
-    transition: color 0.15s, background 0.15s;
-  }
-  .file-actions button:hover { color: var(--text-secondary); background: var(--surface-3); }
-  .file-actions svg { width: 13px; height: 13px; }
-
-  .file-body {
-    padding: 14px 16px;
-    font-family: var(--mono); font-size: 12px;
-    line-height: 1.75; overflow-x: auto; white-space: pre;
-    counter-reset: line;
-  }
-  .file-body .line { display: block; }
-  .file-body .line::before {
-    counter-increment: line;
-    content: counter(line);
-    display: inline-block; width: 24px; margin-right: 16px;
-    text-align: right; color: var(--text-dim);
-    font-size: 11px; user-select: none;
-  }
-
-  .tok-kw { color: var(--blue); }
-  .tok-key { color: var(--emerald); }
-  .tok-str { color: var(--accent); }
-  .tok-cmt { color: var(--text-dim); font-style: italic; }
-  .tok-plain { color: var(--text-secondary); }
-
-  /* ── Empty state ── */
-  .empty-state {
-    margin: 0 16px 16px; padding: 24px 16px;
-    border: 1px dashed var(--border);
-    border-radius: var(--radius);
-    display: flex; align-items: center; gap: 12px;
-    font-size: 13px; color: var(--text-muted); line-height: 1.5;
-  }
-  .empty-state svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--text-dim); }
-  .empty-state strong { color: var(--text-secondary); font-weight: 500; }
+  .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 0 40px var(--accent-glow); }
+  .cta-btn svg { width: 18px; height: 18px; }
 
   /* ── Footer ── */
   .footer {
-    text-align: center; margin-top: 32px;
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    position: relative; z-index: 1;
+    text-align: center; padding: 32px 24px;
+    border-top: 1px solid var(--border-subtle);
   }
-  .footer-text {
-    font-size: 12px; color: var(--text-dim);
-  }
-  .footer-links { display: flex; gap: 16px; }
-  .footer-links a {
-    font-size: 12px; color: var(--text-muted);
-    text-decoration: none; transition: color 0.15s;
-  }
+  .footer-text { font-size: 12px; color: var(--text-dim); }
+  .footer-links { display: flex; justify-content: center; gap: 20px; margin-top: 8px; }
+  .footer-links a { font-size: 12px; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
   .footer-links a:hover { color: var(--text-secondary); }
 
   /* ── Responsive ── */
-  @media (max-width: 480px) {
-    .hero h1 { font-size: 28px; }
-    .pipeline { gap: 0; }
-    .pipe-step span { display: none; }
-    .pipe-line { width: 16px; }
+  @media (max-width: 640px) {
+    .hero { padding: 60px 20px 50px; }
+    .hero h1 { font-size: 34px; }
+    .hero p { font-size: 15px; }
     .nav-tag { display: none; }
+    .step-arrow { display: none; }
+    .steps { flex-direction: column; align-items: center; }
+    .step { max-width: 100%; }
   }
 </style>
 </head>
 <body>
 
-<!-- Background layers -->
 <div class="bg-mesh"></div>
 <div class="bg-grid"></div>
 
@@ -422,477 +281,138 @@
     <span class="nav-tag">v0.2</span>
   </a>
   <div class="nav-links">
-    <a href="/" class="nav-link active">Generate</a>
+    <a href="/" class="nav-link active">Home</a>
+    <a href="/generate" class="nav-link">Generate</a>
     <a href="/analytics" class="nav-link">Analytics</a>
   </div>
 </nav>
 
-<!-- Main content -->
-<div class="main">
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">AI Alibaba Hackathon — Pakistan</div>
+  <h1>Speak your infra.<br><span class="accent-word">Deploy in seconds.</span></h1>
+  <p>Describe your infrastructure out loud — VoicOps generates validated Docker configs and Alibaba Cloud Terraform, self-healing until every file passes.</p>
+  <a href="/generate" class="hero-cta">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8" y1="23" x2="16" y2="23"/>
+    </svg>
+    Build Your Scripts
+  </a>
+  <div class="hero-sub">No typing. No templates. Just speak.</div>
+</section>
 
-  <!-- Hero -->
-  <div class="hero">
-    <div class="hero-badge">AI Alibaba Hackathon</div>
-    <h1>Speak your infrastructure.<br>Deploy in seconds.</h1>
-    <p>Describe your stack out loud — VoicOps generates validated Docker configs and Alibaba Cloud Terraform, self-healing until every file passes.</p>
-  </div>
-
-  <!-- Pipeline indicator -->
-  <div class="pipeline" id="pipeline">
-    <div class="pipe-step" id="pipe-record"><span class="pipe-icon">1</span><span>Record</span></div>
-    <div class="pipe-line" id="line-1"></div>
-    <div class="pipe-step" id="pipe-transcribe"><span class="pipe-icon">2</span><span>Transcribe</span></div>
-    <div class="pipe-line" id="line-2"></div>
-    <div class="pipe-step" id="pipe-extract"><span class="pipe-icon">3</span><span>Extract</span></div>
-    <div class="pipe-line" id="line-3"></div>
-    <div class="pipe-step" id="pipe-generate"><span class="pipe-icon">4</span><span>Generate</span></div>
-    <div class="pipe-line" id="line-4"></div>
-    <div class="pipe-step" id="pipe-validate"><span class="pipe-icon">5</span><span>Validate</span></div>
-  </div>
-
-  <!-- Service chips -->
-  <div class="chip-row" id="chipRow">
-    <span class="chip" data-key="docker">Docker</span>
-    <span class="chip" data-key="postgres">Postgres</span>
-    <span class="chip" data-key="mysql">MySQL</span>
-    <span class="chip" data-key="mongo">MongoDB</span>
-    <span class="chip" data-key="redis">Redis</span>
-    <span class="chip" data-key="node">Node.js</span>
-    <span class="chip" data-key="fastapi,uvicorn">FastAPI</span>
-    <span class="chip" data-key="flask">Flask</span>
-    <span class="chip" data-key="django">Django</span>
-    <span class="chip" data-key="terraform,alicloud">Terraform</span>
-  </div>
-
-  <!-- Console -->
-  <div class="console">
-    <div class="wave-area">
-      <div class="wave-wrap">
-        <canvas id="wave"></canvas>
+<!-- Features -->
+<section class="section">
+  <div class="section-label">Capabilities</div>
+  <div class="section-title">What VoicOps does for you</div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon amber">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
       </div>
-      <div class="mic-container">
-        <button id="micBtn" aria-label="Hold to record">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-            <line x1="12" y1="19" x2="12" y2="23"></line>
-            <line x1="8" y1="23" x2="16" y2="23"></line>
-          </svg>
-        </button>
-        <div class="mic-ring"></div>
+      <h3>Voice to Docker</h3>
+      <p>Speak "Node.js with Postgres and Redis" — get a complete Dockerfile and docker-compose.yml in seconds.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon emerald">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
       </div>
+      <h3>Self-Healing Validation</h3>
+      <p>Every generated config is automatically validated and repaired until it passes linting. No broken files.</p>
     </div>
-
-    <div class="status-area">
-      <div class="status-text" id="status">Hold the mic and describe your infrastructure</div>
-      <div class="transcript-text" id="transcript" style="display:none;"></div>
-      <div id="unsupportedChip"></div>
+    <div class="feature-card">
+      <div class="feature-icon violet">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      </div>
+      <h3>Alibaba Cloud Terraform</h3>
+      <p>Mention "deploy to cloud" and get production-ready Terraform configs for Alibaba Cloud infrastructure.</p>
     </div>
-
-    <div id="results" class="results"></div>
-    <div id="emptyState" class="empty-state" style="display:none;"></div>
-  </div>
-
-  <!-- Footer -->
-  <div class="footer">
-    <div class="footer-text">Docker configs & Alibaba Cloud Terraform — validated and self-healing.</div>
-    <div class="footer-links">
-      <a href="/analytics">Analytics</a>
-      <a href="/health">Health</a>
+    <div class="feature-card">
+      <div class="feature-icon blue">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <h3>Fuzzy Correction</h3>
+      <p>Whisper mishears "redis" as "rattish"? Three defense layers auto-correct speech errors before generation.</p>
     </div>
   </div>
+</section>
 
+<!-- How it works -->
+<section class="section">
+  <div class="section-label">How it works</div>
+  <div class="section-title">From voice to deploy in 4 steps</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h4>Record</h4>
+      <p>Hold the mic and describe your stack naturally</p>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h4>Transcribe</h4>
+      <p>Groq Whisper converts speech to text instantly</p>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h4>Extract</h4>
+      <p>LLM parses services, corrects mishearings</p>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <h4>Generate</h4>
+      <p>Docker + Terraform configs, validated & ready</p>
+    </div>
+  </div>
+</section>
+
+<!-- Supported services -->
+<section class="section">
+  <div class="section-label">Supported</div>
+  <div class="section-title">Frameworks, runtimes & databases</div>
+  <div class="services-row">
+    <span class="service-tag">Node.js</span>
+    <span class="service-tag">FastAPI</span>
+    <span class="service-tag">Flask</span>
+    <span class="service-tag">Django</span>
+    <span class="service-tag">PostgreSQL</span>
+    <span class="service-tag">MySQL</span>
+    <span class="service-tag">Redis</span>
+    <span class="service-tag">MongoDB</span>
+    <span class="service-tag">Docker</span>
+    <span class="service-tag">Terraform</span>
+  </div>
+</section>
+
+<!-- Bottom CTA -->
+<section class="cta-section">
+  <h2>Ready to speak your infrastructure?</h2>
+  <p>One voice command. Production-ready configs. Zero boilerplate.</p>
+  <a href="/generate" class="cta-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8" y1="23" x2="16" y2="23"/>
+    </svg>
+    Start Building
+  </a>
+</section>
+
+<!-- Footer -->
+<div class="footer">
+  <div class="footer-text">VoicOps — Voice-to-Infrastructure for the AI Alibaba Hackathon</div>
+  <div class="footer-links">
+    <a href="/generate">Generate</a>
+    <a href="/analytics">Analytics</a>
+    <a href="/health">Health</a>
+  </div>
 </div>
-
-<script>
-  const micBtn = document.getElementById('micBtn');
-  const statusEl = document.getElementById('status');
-  const transcriptEl = document.getElementById('transcript');
-  const unsupportedEl = document.getElementById('unsupportedChip');
-  const resultsEl = document.getElementById('results');
-  const emptyStateEl = document.getElementById('emptyState');
-  const chipRow = document.getElementById('chipRow');
-  const canvas = document.getElementById('wave');
-  const ctx = canvas.getContext('2d');
-
-  let mediaRecorder, audioChunks = [];
-  let audioCtx, analyser, dataArray, rafId, stream;
-
-  // ── Pipeline state ──
-  function setPipeline(step) {
-    const steps = ['pipe-record','pipe-transcribe','pipe-extract','pipe-generate','pipe-validate'];
-    const lines = ['line-1','line-2','line-3','line-4'];
-    const idx = steps.indexOf(step);
-    steps.forEach((s, i) => {
-      const el = document.getElementById(s);
-      el.className = 'pipe-step' + (i < idx ? ' done' : i === idx ? ' active' : '');
-      if (i < idx) el.querySelector('.pipe-icon').innerHTML = '✓';
-    });
-    lines.forEach((l, i) => {
-      document.getElementById(l).className = 'pipe-line' + (i < idx ? ' done' : '');
-    });
-  }
-  function resetPipeline() {
-    ['pipe-record','pipe-transcribe','pipe-extract','pipe-generate','pipe-validate'].forEach((s, i) => {
-      const el = document.getElementById(s);
-      el.className = 'pipe-step';
-      el.querySelector('.pipe-icon').textContent = i + 1;
-    });
-    ['line-1','line-2','line-3','line-4'].forEach(l => {
-      document.getElementById(l).className = 'pipe-line';
-    });
-  }
-
-  // ── Canvas setup ──
-  function resizeCanvas() {
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * devicePixelRatio;
-    canvas.height = rect.height * devicePixelRatio;
-  }
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-
-  function drawIdle() {
-    const w = canvas.width, h = canvas.height;
-    ctx.clearRect(0, 0, w, h);
-    const barCount = 48;
-    const gap = w / barCount;
-    for (let i = 0; i < barCount; i++) {
-      const barH = Math.max(2, h * 0.04);
-      ctx.fillStyle = '#27272a';
-      ctx.beginPath();
-      ctx.roundRect(i * gap + gap * 0.25, h / 2 - barH / 2, gap * 0.5, barH, 1.5);
-      ctx.fill();
-    }
-  }
-  drawIdle();
-
-  function drawLive() {
-    analyser.getByteFrequencyData(dataArray);
-    const w = canvas.width, h = canvas.height;
-    ctx.clearRect(0, 0, w, h);
-    const barCount = 48;
-    const gap = w / barCount;
-    const step = Math.floor(dataArray.length / barCount);
-    for (let i = 0; i < barCount; i++) {
-      const value = dataArray[i * step] / 255;
-      const barH = Math.max(3, value * h * 0.8);
-      const gradient = ctx.createLinearGradient(0, h / 2 - barH / 2, 0, h / 2 + barH / 2);
-      gradient.addColorStop(0, '#f59e0b');
-      gradient.addColorStop(1, '#d97706');
-      ctx.fillStyle = gradient;
-      ctx.globalAlpha = 0.5 + value * 0.5;
-      ctx.beginPath();
-      ctx.roundRect(i * gap + gap * 0.25, h / 2 - barH / 2, gap * 0.5, barH, 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-    rafId = requestAnimationFrame(drawLive);
-  }
-
-  // ── Helpers ──
-  function setStatus(text, cls) {
-    statusEl.textContent = text;
-    statusEl.className = 'status-text' + (cls ? ' ' + cls : '');
-  }
-
-  function escapeHtml(str) {
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  }
-
-  // ── Syntax highlighters ──
-  function highlightDockerfile(text) {
-    const kws = ['FROM','WORKDIR','COPY','RUN','EXPOSE','CMD','ENV','ENTRYPOINT','ARG','LABEL','ADD','VOLUME','USER','SHELL'];
-    return escapeHtml(text).split('\n').map(line => {
-      const match = line.match(/^([A-Z]+)(\s.*)?$/);
-      if (match && kws.includes(match[1])) {
-        return `<span class="tok-kw">${match[1]}</span><span class="tok-plain">${match[2] || ''}</span>`;
-      }
-      return `<span class="tok-plain">${line}</span>`;
-    }).map(l => `<span class="line">${l}</span>`).join('');
-  }
-
-  function highlightYaml(text) {
-    return escapeHtml(text).split('\n').map(line => {
-      const match = line.match(/^(\s*)([\w."'-]+):(.*)$/);
-      if (match) {
-        return `${match[1]}<span class="tok-key">${match[2]}</span>:<span class="tok-plain">${match[3]}</span>`;
-      }
-      if (/^\s*-\s/.test(line)) return `<span class="tok-str">${line}</span>`;
-      if (/^\s*#/.test(line)) return `<span class="tok-cmt">${line}</span>`;
-      return `<span class="tok-plain">${line}</span>`;
-    }).map(l => `<span class="line">${l}</span>`).join('');
-  }
-
-  function highlightHCL(text) {
-    const kws = ['resource','variable','provider','data','output','module','locals','terraform'];
-    return escapeHtml(text).split('\n').map(line => {
-      if (/^\s*#/.test(line)) return `<span class="tok-cmt">${line}</span>`;
-      const blockMatch = line.match(/^(\s*)(resource|variable|provider|data|output|module|locals|terraform)(\s.*)?$/);
-      if (blockMatch && kws.includes(blockMatch[2])) {
-        return `${blockMatch[1]}<span class="tok-kw">${blockMatch[2]}</span><span class="tok-plain">${blockMatch[3] || ''}</span>`;
-      }
-      const attrMatch = line.match(/^(\s*)([\w.]+)(\s*=\s*)(.*)?$/);
-      if (attrMatch) {
-        const val = attrMatch[4] || '';
-        const valClass = /"/.test(val) ? 'tok-str' : 'tok-plain';
-        return `${attrMatch[1]}<span class="tok-key">${attrMatch[2]}</span>${attrMatch[3]}<span class="${valClass}">${val}</span>`;
-      }
-      return `<span class="tok-plain">${line}</span>`;
-    }).map(l => `<span class="line">${l}</span>`).join('');
-  }
-
-  // ── File card builder ──
-  function fileCard({ iconClass, iconText, filename, content, highlighter, validation }) {
-    let badgeHtml = '';
-    if (validation) {
-      if (!validation.tool_available) badgeHtml = '<span class="file-badge na">N/A</span>';
-      else if (validation.healing_count > 0 && validation.valid) badgeHtml = `<span class="file-badge healed">healed ${validation.healing_count}x</span>`;
-      else if (validation.valid) badgeHtml = '<span class="file-badge pass">valid</span>';
-      else badgeHtml = '<span class="file-badge fail">invalid</span>';
-    }
-    const wrap = document.createElement('div');
-    wrap.className = 'file-card';
-    wrap.innerHTML = `
-      <div class="file-head">
-        <div class="file-name">
-          <span class="file-icon ${iconClass}">${iconText}</span>
-          ${filename}${badgeHtml}
-        </div>
-        <div class="file-actions">
-          <button class="copy-btn" title="Copy">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-          </button>
-          <button class="dl-btn" title="Download">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-        </div>
-      </div>
-      <div class="file-body">${highlighter(content)}</div>
-    `;
-    wrap.querySelector('.copy-btn').addEventListener('click', (e) => {
-      navigator.clipboard.writeText(content);
-      const btn = e.currentTarget;
-      const orig = btn.innerHTML;
-      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-      setTimeout(() => btn.innerHTML = orig, 1200);
-    });
-    wrap.querySelector('.dl-btn').addEventListener('click', () => {
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = filename; a.click();
-      URL.revokeObjectURL(url);
-    });
-    return wrap;
-  }
-
-  function updateChips(data) {
-    const combined = ((data.dockerfile || '') + '\n' + (data.docker_compose || '') + '\n' + (data.terraform || '')).toLowerCase();
-    chipRow.querySelectorAll('.chip').forEach(chip => {
-      const keys = chip.dataset.key.split(',');
-      chip.classList.toggle('active', keys.some(k => combined.includes(k)));
-    });
-  }
-
-  function renderResults(data) {
-    resultsEl.innerHTML = '';
-    emptyStateEl.style.display = 'none';
-
-    const hasD = !!data.dockerfile, hasC = !!data.docker_compose, hasT = !!data.terraform;
-    const v = data.validation || {};
-
-    if (hasD) resultsEl.appendChild(fileCard({ iconClass:'docker', iconText:'D', filename:'Dockerfile', content:data.dockerfile, highlighter:highlightDockerfile, validation:v.dockerfile }));
-    if (hasC) resultsEl.appendChild(fileCard({ iconClass:'compose', iconText:'C', filename:'docker-compose.yml', content:data.docker_compose, highlighter:highlightYaml, validation:null }));
-    if (hasT) resultsEl.appendChild(fileCard({ iconClass:'terraform', iconText:'T', filename:'main.tf', content:data.terraform, highlighter:highlightHCL, validation:v.terraform }));
-
-    if (!hasD && !hasC && !hasT) {
-      emptyStateEl.style.display = 'flex';
-      emptyStateEl.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="7" rx="2"></rect><rect x="3" y="13" width="18" height="7" rx="2"></rect><circle cx="7" cy="7.5" r="1" fill="currentColor" stroke="none"></circle><circle cx="7" cy="16.5" r="1" fill="currentColor" stroke="none"></circle></svg>
-        <span>No services detected. Try naming one directly, like <strong>Postgres</strong>, <strong>Redis</strong>, or <strong>Django</strong>.</span>
-      `;
-      updateChips({ dockerfile: '', docker_compose: '', terraform: '' });
-    } else {
-      updateChips(data);
-    }
-  }
-
-  // ── Audio conversion: WebM → WAV (16-bit PCM, proper RIFF header) ──
-  async function webmToWav(webmBlob) {
-    const arrayBuffer = await webmBlob.arrayBuffer();
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-    audioCtx.close();
-
-    const numChannels = audioBuffer.numberOfChannels;
-    const sampleRate = audioBuffer.sampleRate;
-    const length = audioBuffer.length;
-    const wavBuffer = new ArrayBuffer(44 + length * numChannels * 2);
-    const view = new DataView(wavBuffer);
-
-    function writeStr(offset, str) {
-      for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
-    }
-
-    writeStr(0, 'RIFF');
-    view.setUint32(4, 36 + length * numChannels * 2, true);
-    writeStr(8, 'WAVE');
-    writeStr(12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);              // PCM format
-    view.setUint16(22, numChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * numChannels * 2, true);
-    view.setUint16(32, numChannels * 2, true);
-    view.setUint16(34, 16, true);              // 16-bit
-    writeStr(36, 'data');
-    view.setUint32(40, length * numChannels * 2, true);
-
-    const channels = [];
-    for (let ch = 0; ch < numChannels; ch++) channels.push(audioBuffer.getChannelData(ch));
-
-    let offset = 44;
-    for (let i = 0; i < length; i++) {
-      for (let ch = 0; ch < numChannels; ch++) {
-        const sample = Math.max(-1, Math.min(1, channels[ch][i]));
-        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
-        offset += 2;
-      }
-    }
-
-    return { blob: new Blob([wavBuffer], { type: 'audio/wav' }), duration: length / sampleRate };
-  }
-
-  // ── Recording flow ──
-  async function startRecording() {
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const source = audioCtx.createMediaStreamSource(stream);
-      analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 128;
-      dataArray = new Uint8Array(analyser.frequencyBinCount);
-      source.connect(analyser);
-      drawLive();
-
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
-      mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-      mediaRecorder.onstop = async () => {
-        const webmBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        stream.getTracks().forEach(t => t.stop());
-        cancelAnimationFrame(rafId);
-        audioCtx.close();
-        drawIdle();
-
-        // Convert WebM → WAV for Groq Whisper compatibility
-        const { blob: wavBlob, duration } = await webmToWav(webmBlob);
-        if (duration < 0.5) {
-          setStatus('Recording too short — hold the mic longer', 'error');
-          micBtn.classList.remove('recording', 'processing');
-          resetPipeline();
-          return;
-        }
-        await sendAudio(wavBlob);
-      };
-      mediaRecorder.start();
-      micBtn.classList.add('recording');
-      setStatus('Listening...', 'recording');
-      transcriptEl.style.display = 'none';
-      unsupportedEl.innerHTML = '';
-      resetPipeline();
-      setPipeline('pipe-record');
-    } catch (err) {
-      setStatus('Microphone access denied', 'error');
-    }
-  }
-
-  function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-    micBtn.classList.remove('recording');
-    micBtn.classList.add('processing');
-    setStatus('Processing audio...', '');
-    setPipeline('pipe-transcribe');
-  }
-
-  async function sendAudio(audioBlob) {
-    const formData = new FormData();
-    formData.append('audio', audioBlob, 'command.wav');
-
-    try {
-      setPipeline('pipe-extract');
-      setStatus('Extracting intent & generating configs...', '');
-
-      const response = await fetch('/generate-config', { method: 'POST', body: formData });
-      if (!response.ok) {
-        throw new Error(response.status === 502
-          ? 'Service unreachable. Try again.'
-          : `Request failed (${response.status}).`);
-      }
-
-      const data = await response.json();
-      micBtn.classList.remove('processing');
-      setPipeline('pipe-validate');
-
-      const rawTranscript = (data.transcript || '').trim();
-      const corrected = (data.corrected_transcript || '').trim();
-      const wasCorrected = rawTranscript && corrected && rawTranscript.toLowerCase() !== corrected.toLowerCase();
-
-      if (rawTranscript) {
-        transcriptEl.style.display = 'block';
-        if (wasCorrected) {
-          transcriptEl.innerHTML =
-            `<div class="transcript-heard">Heard: <em>"${escapeHtml(rawTranscript)}"</em></div>` +
-            `<div class="transcript-understood">Understood: <em>"${escapeHtml(corrected)}"</em></div>`;
-        } else {
-          transcriptEl.innerHTML = `<em>"${escapeHtml(rawTranscript)}"</em>`;
-        }
-      }
-
-      if (data.unsupported && data.unsupported.length) {
-        unsupportedEl.innerHTML = `<div class="unsupported-pill">Not supported: ${data.unsupported.map(escapeHtml).join(', ')}</div>`;
-      } else {
-        unsupportedEl.innerHTML = '';
-      }
-
-      if (data.dockerfile || data.docker_compose || data.terraform) {
-        const parts = [];
-        if (data.dockerfile || data.docker_compose) parts.push('Docker');
-        if (data.terraform) parts.push('Terraform');
-        setStatus(parts.join(' + ') + ' generated successfully', 'ready');
-        setPipeline('pipe-validate');
-        // Mark all steps as done
-        setTimeout(() => {
-          ['pipe-record','pipe-transcribe','pipe-extract','pipe-generate','pipe-validate'].forEach((s, i) => {
-            const el = document.getElementById(s);
-            el.className = 'pipe-step done';
-            el.querySelector('.pipe-icon').innerHTML = '✓';
-          });
-          ['line-1','line-2','line-3','line-4'].forEach(l => {
-            document.getElementById(l).className = 'pipe-line done';
-          });
-        }, 300);
-      } else {
-        setStatus('No service name detected');
-        resetPipeline();
-      }
-      renderResults(data);
-    } catch (err) {
-      micBtn.classList.remove('processing');
-      setStatus(err.message, 'error');
-      resetPipeline();
-    }
-  }
-
-  micBtn.addEventListener('mousedown', startRecording);
-  micBtn.addEventListener('mouseup', stopRecording);
-  micBtn.addEventListener('mouseleave', () => {
-    if (mediaRecorder && mediaRecorder.state === 'recording') stopRecording();
-  });
-  micBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); });
-  micBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopRecording(); });
-</script>
 
 </body>
 </html>

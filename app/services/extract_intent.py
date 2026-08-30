@@ -202,6 +202,78 @@ def fuzzy_resolve(services: list[str], unsupported: list[str]) -> tuple[list[str
 
     return corrected, still_unsupported
 
+
+def build_corrected_transcript(raw_transcript: str, corrected_services: list[str]) -> str:
+    """
+    Rebuild the transcript with all 3 layers of corrections applied.
+    Replaces misheard service names in the text with the correct ones,
+    so the frontend can show what was 'understood' vs what was 'heard'.
+    """
+    text = raw_transcript.lower()
+
+    # Layer 1: apply KNOWN_CORRECTIONS (longest phrases first to avoid partial matches)
+    for wrong, right in sorted(KNOWN_CORRECTIONS.items(), key=lambda x: -len(x[0])):
+        text = text.replace(wrong, right)
+
+    # Layer 2+3: replace phonetic aliases and fuzzy matches in the text
+    for svc in corrected_services:
+        if svc not in SUPPORTED_SERVICES:
+            continue
+
+        # Replace single-word phonetic aliases (whole words only, skip self)
+        for alias in PHONETIC_ALIASES.get(svc, []):
+            if alias != svc:
+                # Only replace whole words, not substrings
+                words = text.split()
+                for i, word in enumerate(words):
+                    if word.strip(".,!?;:") == alias:
+                        words[i] = word.replace(alias, svc)
+                text = " ".join(words)
+
+        # Word-level scan: single-word fuzzy + multi-word prefix catch
+        words = text.split()
+        prefix = svc[:4] if len(svc) >= 5 else svc[:3]
+        i = 0
+        while i < len(words):
+            cleaned = words[i].strip(".,!?;:")
+
+            # Already correct — skip
+            if cleaned == svc:
+                i += 1
+                continue
+
+            # Single-word fuzzy match
+            if _fuzzy_match(cleaned) == svc:
+                words[i] = words[i].replace(cleaned, svc)
+                i += 1
+                continue
+
+            # Multi-word catch: word starts with service prefix but isn't the
+            # service itself — likely a multi-word mishearing. Replace it and
+            # absorb the next word if combining them gets closer.
+            if cleaned.startswith(prefix) and len(cleaned) >= 3 and i < len(words) - 1:
+                # Don't touch words that ARE another corrected service
+                if cleaned in corrected_services:
+                    i += 1
+                    continue
+                next_cleaned = words[i + 1].strip(".,!?;:")
+                combined = cleaned + " " + next_cleaned
+                if _fuzzy_match(combined, max_distance=4) == svc:
+                    words[i] = svc
+                    del words[i + 1]
+                else:
+                    # Even if combined doesn't match, a prefix word that isn't
+                    # the service itself is suspicious — replace just this word
+                    words[i] = svc
+                i += 1
+                continue
+
+            i += 1
+
+        text = " ".join(words)
+
+    return text
+
 SYSTEM_PROMPT = """Extract only known infrastructure services mentioned in the user's request.
 Also detect if the user wants cloud deployment (Alibaba Cloud, cloud hosting, deploy to cloud, on the cloud).
 Respond only with JSON in this exact shape:

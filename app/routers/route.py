@@ -36,8 +36,6 @@ ANALYTICS_PATH = BASE_DIR / "templates" / "analytics.html"
 async def serve_frontend():
     return FileResponse(HTML_PATH)
 
-
-
 @router.post('/generate-config')
 async def generate_config(audio: UploadFile):
     audio_bytes = await audio.read()

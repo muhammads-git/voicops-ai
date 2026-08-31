@@ -23,8 +23,8 @@ async def speech_to_text(audio_bytes: bytes) -> str:
             request=audio_bytes,
             model="nova-3",
             smart_format=True,
-            keywords=["postgresql", "mysql", "mongodb", "redis",
-                      "fastapi", "nodejs", "flask", "django", "docker"],
+            keyterm=["postgresql", "mysql", "mongodb", "redis",
+                     "fastapi", "nodejs", "flask", "django", "docker"],
         )
         transcript = response.results.channels[0].alternatives[0].transcript
         return transcript or ""

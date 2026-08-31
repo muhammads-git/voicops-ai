@@ -34,7 +34,7 @@ def strip_code_fences(text: str) -> str:
     text = text.strip()
     # Remove opening fence (with optional language identifier like ```dockerfile or ```hcl)
     if text.startswith("```"):
-        first_newline = text.index("\n") if "\n" in text else 3
+        first_newline = text.index("\n") if "\n" in text else 2
         text = text[first_newline + 1:]
     # Remove closing fence
     if text.endswith("```"):

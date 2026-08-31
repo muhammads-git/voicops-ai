@@ -12,7 +12,8 @@ async def speech_to_text(audio_bytes: bytes) -> str:
     try:
         transcription = await client.audio.transcriptions.create(
             file=("command.wav", audio_bytes),
-            model="whisper-large-v3-turbo"
+            model="whisper-large-v3-turbo",
+            prompt="postgresql, mysql, mongodb, redis, fastapi, nodejs, flask, django, docker",
         )
         return transcription.text
     except RateLimitError:

@@ -1,4 +1,4 @@
-from fastapi import HTTPException,APIRouter,UploadFile
+from fastapi import HTTPException,APIRouter,UploadFile,Form
 from fastapi.responses import HTMLResponse,FileResponse
 from app.services.api_service import speech_to_text
 import time
@@ -56,7 +56,20 @@ async def generate_config(audio: UploadFile):
         print(f"[ERROR] Step 1 (speech-to-text): {e}")
         raise HTTPException(status_code=502, detail=str(e))
 
-    # Step 2: transcript -> structured intent (with circuit breaker)
+    return await _process_intent(transcript, start_time)
+
+
+@router.post('/generate-text')
+async def generate_text(text: str = Form("")):
+    """Text input fallback — skips speech-to-text, goes straight to intent extraction."""
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="No text provided")
+    start_time = time.time()
+    return await _process_intent(text.strip(), start_time)
+
+
+async def _process_intent(transcript: str, start_time: float):
+    """Shared pipeline: transcript -> intent -> configs -> validation."""
     try:
         print(f"[STEP 2] Transcript: {transcript}")
         intent = await intent_breaker.call(extract_intent, normalize_transcript(transcript))
@@ -149,6 +162,7 @@ async def generate_config(audio: UploadFile):
         "terraform": terraform_content,
         "validation": validation,
         "healing_stats": healing_stats,
+        "time_taken": round(elapsed, 2),
     }
 
 

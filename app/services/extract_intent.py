@@ -10,16 +10,15 @@ logger = logging.getLogger(__name__)
 #
 #  Layer 1 — Transcript Normalizer : pre-LLM text corrections
 #  Layer 2 — Fuzzy Resolver        : post-LLM edit-distance matching
-#  Layer 3 — Phonetic Rescuer      : post-LLM sound-alike + substring rescue
+#  Layer 3 — Phonetic Rescuer      : post-LLM curated sound-alike matching only
+#
+#  NOTE: Layer 3 previously also included a prefix-substring fallback
+#  (checking if a service's first 4 letters appeared anywhere in an
+#  unrecognized word). It was removed — see reasoning below the
+#  fuzzy_resolve function.
 
 SUPPORTED_SERVICES = {"postgresql", "mysql", "mongodb", "redis", "fastapi", "nodejs", "docker", "flask", "django"}
 
-# ═══════════════════════════════════════════════════════════════
-#  Layer 1: Transcript Normalizer
-#  Pre-LLM — fixes known Whisper mishearings in the raw text
-#  before the LLM ever sees it. Expand KNOWN_CORRECTIONS as you
-#  discover new mishearings during testing.
-# ═══════════════════════════════════════════════════════════════
 KNOWN_CORRECTIONS = {
     # nodejs
     "nordjust": "nodejs",
@@ -52,6 +51,7 @@ KNOWN_CORRECTIONS = {
     "mongo baby": "mongodb",
     "mon go db": "mongodb",
     "mango db": "mongodb",
+    "mango": "mongodb",  # confirmed real mishearing during testing (edit distance 3, missed by Layer 2's max_distance=2)
     # redis
     "red is": "redis",
     "read is": "redis",
@@ -72,7 +72,6 @@ KNOWN_CORRECTIONS = {
     "darker": "docker",
     "doc her": "docker",
     # flask
-    "flask": "flask",
     "flash": "flask",
     "fl ask": "flask",
     # django
@@ -89,14 +88,24 @@ KNOWN_CORRECTIONS = {
 
 # ═══════════════════════════════════════════════════════════════
 #  Layer 3: Phonetic Rescuer
-#  Sound-alike clusters for the last-resort rescue scan on the
-#  unsupported list. If Whisper hears "mongo" instead of "mongodb",
-#  this catches it even when Layers 1 & 2 missed it.
+#  Curated sound-alike clusters only. Every entry here was added
+#  because it was actually observed during testing — not guessed.
+#  This is deliberately the ONLY mechanism in Layer 3. The prefix-
+#  substring fallback that used to sit alongside this was removed:
+#  it checked whether a service's first 4 letters appeared anywhere
+#  in an unrecognized word, which produces false positives on
+#  ordinary English words that coincidentally share those letters
+#  (e.g. "flashlight" contains "flas", the first 4 letters of
+#  "flask" — the check would wrongly report "Flask" was requested).
+#  A missed correction is honest (user sees "not supported yet");
+#  a false rescue is silently wrong (user sees a confident answer
+#  that doesn't match what they said). This list only grows when a
+#  real mishearing is confirmed through actual testing.
 # ═══════════════════════════════════════════════════════════════
 PHONETIC_ALIASES = {
     "postgresql": ["postgres", "postgre", "postgras", "postgrest", "postcard", "postbird", "postgress"],
     "mysql":      ["mysequel", "mysqul", "mikesql", "myschool"],
-    "mongodb":    ["mongo", "mongod", "mongob", "mangodb", "mongode", "mongol"],
+    "mongodb":    ["mongo", "mongod", "mongob", "mangodb", "mongode", "mongol", "mango"],
     "redis":      ["reddis", "redish", "radish", "reddish", "redissh", "rediss", "redi"],
     "nodejs":     ["node", "nodejs", "nodjs", "notjs", "nojs", "nods"],
     "fastapi":    ["fastapi", "fastapy", "fastappy", "pastapi"],
@@ -122,6 +131,7 @@ def _edit_distance(a: str, b: str) -> int:
         return _edit_distance(b, a)
     if not b:
         return len(a)
+
     prev = list(range(len(b) + 1))
     for i, ca in enumerate(a):
         curr = [i + 1]
@@ -149,8 +159,8 @@ def fuzzy_resolve(services: list[str], unsupported: list[str]) -> tuple[list[str
 
     Layer 2 (Fuzzy Resolver) — edit-distance matching on unrecognized names
               in the services list (e.g. "redish" -> "redis").
-    Layer 3 (Phonetic Rescuer) — sound-alike alias + substring scan on the
-              unsupported list to recover missed services (e.g. "mongo" -> "mongodb").
+    Layer 3 (Phonetic Rescuer) — curated sound-alike lookup on the
+              unsupported list only (e.g. "mongo" -> "mongodb").
     """
     corrected = []
     still_unsupported = []
@@ -170,27 +180,29 @@ def fuzzy_resolve(services: list[str], unsupported: list[str]) -> tuple[list[str
         else:
             still_unsupported.append(svc)
 
-    # ── Layer 3: Phonetic Rescuer — sound-alike + substring rescue ──
+    # ── Layer 3: Phonetic Rescuer — curated alias lookup only ──
     for item in unsupported:
         lower = item.lower().strip()
         matched = None
 
-        # Check phonetic aliases first
         for svc, aliases in PHONETIC_ALIASES.items():
-            if lower in aliases or any(alias in lower for alias in aliases):
+            if lower in aliases:
                 matched = svc
                 break
 
-        # Fallback: substring match (e.g. "postcard" contains "postg" ~ postgres)
-        if not matched:
-            for svc in SUPPORTED_SERVICES:
-                if len(svc) >= 5 and svc[:4] in lower:
-                    matched = svc
-                    break
+        # REMOVED: prefix-substring fallback (checked if svc[:4] appeared
+        # anywhere in `lower`). Deleted because it produces false positives
+        # on unrelated English words sharing a 4-letter fragment with a
+        # service name (e.g. "flashlight" -> falsely matched "flask").
+        # A confident wrong match is worse than an honest "unsupported" —
+        # it hides the mistake instead of surfacing it to the user.
 
-        # Fallback: edit distance
-        if not matched:
-            matched = _fuzzy_match(lower, max_distance=2)
+        # REMOVED: blind final fuzzy-match fallback on the raw unsupported
+        # word. This ran full edit-distance matching against every
+        # genuinely-unsupported word (e.g. "kafka", "terraform"), risking
+        # the same silent false-positive problem — an unrelated or
+        # not-yet-supported word coincidentally landing within edit
+        # distance 2 of a real service and getting reported as understood.
 
         if matched and matched not in corrected:
             logger.info(f"Rescued from unsupported: '{item}' -> '{matched}'")
@@ -205,7 +217,7 @@ def fuzzy_resolve(services: list[str], unsupported: list[str]) -> tuple[list[str
 
 def build_corrected_transcript(raw_transcript: str, corrected_services: list[str]) -> str:
     """
-    Rebuild the transcript with all 3 layers of corrections applied.
+    Rebuild the transcript with all layers' corrections applied.
     Replaces misheard service names in the text with the correct ones,
     so the frontend can show what was 'understood' vs what was 'heard'.
     """
@@ -223,56 +235,41 @@ def build_corrected_transcript(raw_transcript: str, corrected_services: list[str
         # Replace single-word phonetic aliases (whole words only, skip self)
         for alias in PHONETIC_ALIASES.get(svc, []):
             if alias != svc:
-                # Only replace whole words, not substrings
                 words = text.split()
                 for i, word in enumerate(words):
                     if word.strip(".,!?;:") == alias:
                         words[i] = word.replace(alias, svc)
                 text = " ".join(words)
 
-        # Word-level scan: single-word fuzzy + multi-word prefix catch
+        # Word-level scan: single-word fuzzy match only.
+        #
+        # REMOVED: the multi-word prefix catch that used
+        # `cleaned.startswith(prefix)` to find and replace words sharing
+        # a service's first few letters. Same risk as the fallback removed
+        # from fuzzy_resolve above — .startswith() is stricter than the
+        # old `in` check, but it still misfires on ordinary words that
+        # genuinely start with those letters ("post" -> postcard, poster,
+        # postpone; "flas" -> flashlight, flashback). This function only
+        # needs to display what was already safely corrected upstream —
+        # it doesn't need its own independent, riskier matching logic.
         words = text.split()
-        prefix = svc[:4] if len(svc) >= 5 else svc[:3]
         i = 0
         while i < len(words):
             cleaned = words[i].strip(".,!?;:")
 
-            # Already correct — skip
             if cleaned == svc:
                 i += 1
                 continue
 
-            # Single-word fuzzy match
             if _fuzzy_match(cleaned) == svc:
                 words[i] = words[i].replace(cleaned, svc)
-                i += 1
-                continue
-
-            # Multi-word catch: word starts with service prefix but isn't the
-            # service itself — likely a multi-word mishearing. Replace it and
-            # absorb the next word if combining them gets closer.
-            if cleaned.startswith(prefix) and len(cleaned) >= 3 and i < len(words) - 1:
-                # Don't touch words that ARE another corrected service
-                if cleaned in corrected_services:
-                    i += 1
-                    continue
-                next_cleaned = words[i + 1].strip(".,!?;:")
-                combined = cleaned + " " + next_cleaned
-                if _fuzzy_match(combined, max_distance=4) == svc:
-                    words[i] = svc
-                    del words[i + 1]
-                else:
-                    # Even if combined doesn't match, a prefix word that isn't
-                    # the service itself is suspicious — replace just this word
-                    words[i] = svc
-                i += 1
-                continue
 
             i += 1
 
         text = " ".join(words)
 
     return text
+
 
 SYSTEM_PROMPT = """Extract only known infrastructure services mentioned in the user's request.
 Also detect if the user wants cloud deployment (Alibaba Cloud, cloud hosting, deploy to cloud, on the cloud).
@@ -286,12 +283,6 @@ Set "deploy_cloud" to true only when the user explicitly mentions cloud deployme
 
 
 async def extract_intent(transcript: str) -> dict:
-    """
-    Sends the transcript to the LLM, returns a dict:
-    {"services": [...], "unsupported": [...]}
-    Raises Exception on API failure OR on malformed model output —
-    both are failure cases the route needs to handle, not silently pass through.
-    """
     try:
         response = await client.chat.completions.create(
             model="openai/gpt-oss-120b",
@@ -314,8 +305,6 @@ async def extract_intent(transcript: str) -> dict:
         logger.error(f"Groq API error {e.status_code}: {e.message}")
         raise Exception(f"Intent extraction failed (status {e.status_code})")
 
-    # The API call succeeding doesn't guarantee valid/expected JSON shape.
-    # This is a SEPARATE failure mode from the API errors above — handle it too.
     raw_content = response.choices[0].message.content
     print(f'Raw script: {raw_content}')
 
@@ -325,16 +314,12 @@ async def extract_intent(transcript: str) -> dict:
         logger.error(f"Model returned non-JSON content: {raw_content}")
         raise Exception("Could not parse intent from model response")
 
-    # Split raw LLM output into recognized vs unrecognized
     raw_services = parsed.get("services", [])
     raw_unsupported = parsed.get("unsupported", [])
 
-    # Anything the LLM put in "services" that isn't a known service gets
-    # moved to the correction pile rather than blindly trusted.
     valid_services = [s for s in raw_services if s in SUPPORTED_SERVICES]
     leaked_unsupported = [s for s in raw_services if s not in SUPPORTED_SERVICES]
 
-    # Layer 2+3: fuzzy_resolve misheard service names across both lists
     corrected_services, corrected_unsupported = fuzzy_resolve(
         valid_services + leaked_unsupported,
         raw_unsupported,

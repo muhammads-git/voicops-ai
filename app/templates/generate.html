@@ -6,32 +6,35 @@
 <title>VoicOps — Generate</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23020617'/%3E%3Cpath d='M7 4v16M12 8v8M17 6v12' stroke='%2338bdf8' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
   :root {
-    --bg: #09090b;
-    --surface: #111113;
-    --surface-2: #18181b;
-    --surface-3: #1e1e22;
-    --border: #27272a;
-    --border-subtle: #1e1e22;
-    --text: #fafafa;
-    --text-secondary: #a1a1aa;
-    --text-muted: #52525b;
-    --text-dim: #3f3f46;
-    --accent: #f59e0b;
-    --accent-soft: rgba(245, 158, 11, 0.1);
-    --accent-glow: rgba(245, 158, 11, 0.15);
-    --emerald: #10b981;
-    --emerald-soft: rgba(16, 185, 129, 0.1);
-    --blue: #3b82f6;
-    --blue-soft: rgba(59, 130, 246, 0.1);
-    --violet: #8b5cf6;
-    --violet-soft: rgba(139, 92, 246, 0.08);
-    --red: #ef4444;
-    --red-soft: rgba(239, 68, 68, 0.1);
-    --radius: 12px;
-    --radius-lg: 16px;
-    --radius-sm: 8px;
+    --bg: #020617;
+    --surface: #0b1021;
+    --surface-2: #111827;
+    --surface-3: #1a2332;
+    --border: rgba(148, 163, 184, 0.12);
+    --border-strong: rgba(148, 163, 184, 0.18);
+    --text: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --text-dim: #475569;
+    --accent: #38bdf8;
+    --accent-2: #0ea5e9;
+    --accent-soft: rgba(56, 189, 248, 0.14);
+    --accent-glow: rgba(56, 189, 248, 0.3);
+    --emerald: #34d399;
+    --emerald-soft: rgba(52, 211, 153, 0.14);
+    --blue: #60a5fa;
+    --blue-soft: rgba(96, 165, 250, 0.14);
+    --violet: #a78bfa;
+    --violet-soft: rgba(167, 139, 250, 0.12);
+    --violet-glow: rgba(167, 139, 250, 0.18);
+    --red: #f87171;
+    --red-soft: rgba(248, 113, 113, 0.14);
+    --radius: 14px;
+    --radius-lg: 20px;
+    --radius-sm: 10px;
     --font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
   }
@@ -41,158 +44,211 @@
     font-family: var(--font); height: 100vh; overflow: hidden;
     -webkit-font-smoothing: antialiased;
   }
-  .bg-mesh {
+
+  /* ── Background layers ── */
+  .bg-orb {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  }
+  .bg-orb::before, .bg-orb::after {
+    content: ''; position: absolute; border-radius: 50%;
+    filter: blur(110px); opacity: 0.5;
+    animation: orb-float 20s ease-in-out infinite alternate;
+  }
+  .bg-orb::before {
+    width: 650px; height: 650px;
+    background: radial-gradient(circle, rgba(56,189,248,0.2) 0%, transparent 70%);
+    top: -200px; right: -180px;
+  }
+  .bg-orb::after {
+    width: 550px; height: 550px;
+    background: radial-gradient(circle, rgba(167,139,250,0.16) 0%, transparent 70%);
+    bottom: -160px; left: -120px;
+    animation-delay: -9s;
+  }
+  @keyframes orb-float {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-30px, 20px) scale(1.06); }
+  }
+  .bg-grid {
     position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background:
-      radial-gradient(ellipse 60% 50% at 20% 10%, rgba(245,158,11,0.04) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 40% at 80% 20%, rgba(139,92,246,0.03) 0%, transparent 60%),
-      radial-gradient(ellipse 70% 50% at 50% 90%, rgba(59,130,246,0.03) 0%, transparent 60%);
+    background-image:
+      linear-gradient(rgba(148,163,184,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,0.05) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 50%, black 30%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 50%, black 30%, transparent 80%);
+  }
+  .bg-noise {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
   /* ── Navigation ── */
   .nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 50;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 24px; height: 56px;
-    background: rgba(9,9,11,0.9);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border-subtle);
+    padding: 0 24px; height: 64px;
+    background: rgba(2, 6, 23, 0.78);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
   }
-  .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+  .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
   .nav-logo {
-    width: 28px; height: 28px; border-radius: 7px;
-    background: linear-gradient(135deg, var(--accent), #d97706);
+    width: 32px; height: 32px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), var(--violet));
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 20px var(--accent-glow);
+    box-shadow: 0 0 24px var(--accent-glow);
   }
-  .nav-logo svg { width: 16px; height: 16px; }
-  .nav-name { font-weight: 600; font-size: 15px; letter-spacing: -0.02em; }
+  .nav-logo svg { width: 17px; height: 17px; }
+  .nav-name { font-weight: 600; font-size: 16px; letter-spacing: -0.02em; }
   .nav-tag {
     font-family: var(--mono); font-size: 10px; font-weight: 500;
     color: var(--text-muted); background: var(--surface-2);
-    padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); margin-left: 4px;
+    padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border); margin-left: 2px;
   }
-  .nav-links { display: flex; align-items: center; gap: 4px; }
+  .nav-links { display: flex; align-items: center; gap: 6px; }
   .nav-link {
     font-size: 13px; font-weight: 500; color: var(--text-secondary);
-    text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm);
-    transition: color 0.15s, background 0.15s;
+    text-decoration: none; padding: 7px 14px; border-radius: var(--radius-sm);
+    transition: color 0.2s, background 0.2s;
   }
-  .nav-link:hover { color: var(--text); background: var(--surface-2); }
-  .nav-link.active { color: var(--text); background: var(--surface-2); }
+  .nav-link:hover { color: var(--text); background: rgba(148,163,184,0.08); }
+  .nav-link.active { color: var(--text); background: var(--surface-2); border: 1px solid var(--border); }
 
   /* ── App layout ── */
   .app {
     display: flex; flex-direction: column;
-    height: 100vh; padding-top: 56px;
+    height: 100vh; padding-top: 64px;
     position: relative; z-index: 1;
   }
 
   /* ── Chat messages ── */
   .chat-area {
-    flex: 1; overflow-y: auto; padding: 24px 20px;
-    max-width: 680px; width: 100%; margin: 0 auto;
-    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+    flex: 1; overflow-y: auto; padding: 28px 20px 120px;
+    max-width: 760px; width: 100%; margin: 0 auto;
+    scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent;
   }
   .chat-area::-webkit-scrollbar { width: 6px; }
-  .chat-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .chat-area::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
 
   /* Welcome state */
   .welcome {
     display: flex; flex-direction: column; align-items: center;
-    justify-content: center; height: 100%; text-align: center; padding: 40px 20px;
+    justify-content: center; min-height: calc(100vh - 240px); text-align: center; padding: 40px 20px;
   }
-  .welcome-icon {
-    width: 64px; height: 64px; border-radius: 50%;
-    background: var(--surface-2); border: 1.5px solid var(--border);
+  .welcome-orb {
+    position: relative; width: 96px; height: 96px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: 28px;
   }
-  .welcome-icon svg { width: 28px; height: 28px; color: var(--text-muted); }
+  .welcome-orb::before {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-soft), var(--violet-soft));
+    box-shadow: 0 0 60px var(--accent-glow), inset 0 0 24px rgba(56,189,248,0.08);
+    border: 1px solid rgba(56,189,248,0.2);
+  }
+  .welcome-orb::after {
+    content: ''; position: absolute; inset: -12px; border-radius: 50%;
+    border: 1px solid rgba(56,189,248,0.12);
+    animation: welcome-breathe 3s ease-in-out infinite;
+  }
+  @keyframes welcome-breathe {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.08); opacity: 0.2; }
+  }
+  .welcome-orb svg { position: relative; width: 38px; height: 38px; color: var(--accent); }
   .welcome h2 {
-    font-size: 20px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 8px;
+    font-size: 26px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 10px;
+    background: linear-gradient(180deg, var(--text) 0%, var(--text-secondary) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
   .welcome p {
-    font-size: 14px; color: var(--text-muted); max-width: 360px; line-height: 1.6;
+    font-size: 15px; color: var(--text-muted); max-width: 380px; line-height: 1.65;
   }
   .welcome-hints {
-    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; justify-content: center;
+    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; justify-content: center;
   }
   .welcome-hint {
-    font-family: var(--mono); font-size: 11.5px; color: var(--text-dim);
-    background: var(--surface-2); border: 1px solid var(--border);
-    padding: 6px 14px; border-radius: 20px;
+    font-family: var(--mono); font-size: 12px; color: var(--text-secondary);
+    background: rgba(11, 16, 33, 0.6); border: 1px solid var(--border);
+    padding: 8px 16px; border-radius: 999px;
+    transition: border-color 0.2s, color 0.2s;
+    cursor: default;
   }
+  .welcome-hint:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* Chat message */
-  .chat-msg {
-    margin-bottom: 16px; animation: msg-in 0.3s ease;
+  /* ── Message group ── */
+  .msg-group {
+    margin-bottom: 28px; animation: msg-in 0.35s ease;
   }
-  @keyframes msg-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-  .msg-time {
+  .msg-group:last-child { margin-bottom: 12px; }
+  @keyframes msg-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .msg-group-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; padding: 0 2px;
+  }
+  .msg-group-time {
     font-family: var(--mono); font-size: 10.5px; color: var(--text-dim);
-    margin-bottom: 6px; padding-left: 2px;
   }
-  .msg-head {
-    display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;
-  }
-  .msg-close {
+  .msg-group-close {
     background: transparent; border: none; cursor: pointer;
     color: var(--text-dim); padding: 2px 6px; border-radius: 4px;
     font-size: 16px; line-height: 1;
     transition: color 0.15s, background 0.15s;
   }
-  .msg-close:hover { color: var(--red); background: var(--red-soft); }
+  .msg-group-close:hover { color: var(--red); background: var(--red-soft); }
 
-  /* Transcript section */
+  /* Transcript bubble */
   .msg-transcript {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 12px 16px; margin-bottom: 10px;
+    background: rgba(17, 24, 39, 0.7); border: 1px solid var(--border);
+    border-radius: var(--radius) var(--radius) var(--radius) 4px;
+    padding: 14px 18px; margin-bottom: 14px;
+    backdrop-filter: blur(8px);
   }
   .msg-heard {
     font-size: 12.5px; color: var(--red); opacity: 0.75; line-height: 1.5;
   }
   .msg-heard em { font-style: italic; }
   .msg-understood {
-    font-size: 13px; color: var(--emerald); line-height: 1.5; margin-top: 4px;
+    font-size: 13.5px; color: var(--emerald); line-height: 1.5; margin-top: 4px;
   }
   .msg-understood em { font-style: normal; font-weight: 500; }
   .msg-unsupported {
-    display: inline-flex; align-items: center; gap: 5px;
-    margin-top: 8px; padding: 3px 10px;
-    background: var(--red-soft); border: 1px solid rgba(239,68,68,0.15);
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 8px; padding: 4px 12px;
+    background: var(--red-soft); border: 1px solid rgba(248,113,113,0.18);
     border-radius: 999px; font-size: 11px; color: var(--red);
   }
 
-  /* Files section */
-  .msg-files {
-    display: flex; flex-direction: column; gap: 10px;
-  }
+  /* Empty result */
   .msg-empty-result {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 16px;
-    font-size: 13px; color: var(--text-muted); font-style: italic;
+    background: rgba(11, 16, 33, 0.6); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 18px;
+    font-size: 13.5px; color: var(--text-muted); font-style: italic;
     text-align: center;
   }
 
   /* File card */
   .file-card {
     border: 1px solid var(--border); border-radius: var(--radius);
-    overflow: hidden; background: var(--bg);
+    overflow: hidden; background: rgba(2, 6, 23, 0.55);
+    margin-bottom: 12px;
+    transition: border-color 0.3s, box-shadow 0.3s;
   }
+  .file-card:hover { border-color: rgba(56,189,248,0.2); box-shadow: 0 0 30px rgba(56,189,248,0.04); }
   .file-head {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 12px; background: var(--surface-2);
-    border-bottom: 1px solid var(--border-subtle);
+    padding: 10px 14px; background: rgba(17, 24, 39, 0.85);
+    border-bottom: 1px solid var(--border);
   }
   .file-name {
-    display: flex; align-items: center; gap: 8px;
-    font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--text-secondary);
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 12.5px; font-weight: 500; color: var(--text-secondary);
   }
   .file-icon {
-    width: 16px; height: 16px; border-radius: 4px;
+    width: 18px; height: 18px; border-radius: 5px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 8px; font-weight: 700; font-family: var(--mono);
+    font-size: 8.5px; font-weight: 700; font-family: var(--mono);
   }
   .file-icon.docker { background: var(--blue-soft); color: var(--blue); }
   .file-icon.compose { background: var(--emerald-soft); color: var(--emerald); }
@@ -208,113 +264,211 @@
   .file-actions { display: flex; gap: 2px; }
   .file-actions button {
     background: transparent; border: none; color: var(--text-dim);
-    cursor: pointer; padding: 4px 6px; border-radius: 6px;
+    cursor: pointer; padding: 5px 7px; border-radius: 6px;
     display: flex; align-items: center; transition: color 0.15s, background 0.15s;
   }
   .file-actions button:hover { color: var(--text-secondary); background: var(--surface-3); }
-  .file-actions svg { width: 13px; height: 13px; }
+  .file-actions svg { width: 14px; height: 14px; }
   .file-body {
-    padding: 14px 16px; font-family: var(--mono); font-size: 12px;
-    line-height: 1.75; overflow: auto; white-space: pre;
-    counter-reset: line; max-height: 320px;
+    padding: 16px 18px; font-family: var(--mono); font-size: 12.5px;
+    line-height: 1.8; overflow: auto; white-space: pre;
+    counter-reset: line; max-height: 340px;
   }
   .file-body .line { display: block; }
   .file-body .line::before {
     counter-increment: line; content: counter(line);
-    display: inline-block; width: 24px; margin-right: 16px;
+    display: inline-block; width: 26px; margin-right: 16px;
     text-align: right; color: var(--text-dim); font-size: 11px; user-select: none;
   }
-  .tok-kw { color: var(--blue); }
+  .tok-kw { color: var(--accent); }
   .tok-key { color: var(--emerald); }
-  .tok-str { color: var(--accent); }
+  .tok-str { color: var(--violet); }
   .tok-cmt { color: var(--text-dim); font-style: italic; }
   .tok-plain { color: var(--text-secondary); }
 
   /* Clear history */
   .clear-history {
     display: none; align-items: center; justify-content: center;
-    gap: 6px; padding: 8px; margin: 8px 0;
-    background: transparent; border: 1px dashed var(--border);
-    border-radius: var(--radius-sm); cursor: pointer; width: 100%;
+    gap: 6px; padding: 8px 12px; margin: 0 0 0 4px;
+    background: transparent; border: none; border-radius: var(--radius-sm);
+    cursor: pointer;
     font-size: 12px; color: var(--text-dim);
-    transition: color 0.15s, border-color 0.15s;
+    transition: color 0.15s, background 0.15s;
   }
-  .clear-history:hover { color: var(--red); border-color: var(--red); }
+  .clear-history:hover { color: var(--red); background: var(--red-soft); }
   .clear-history.visible { display: flex; }
 
-  /* ── Input area ── */
-  .input-area {
-    flex-shrink: 0; max-width: 680px; width: 100%; margin: 0 auto;
-    border-top: 1px solid var(--border-subtle);
-    background: rgba(9,9,11,0.9); backdrop-filter: blur(12px);
-    padding: 16px 20px 24px;
+  /* ── Input dock ── */
+  .input-dock {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+    z-index: 40;
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 14px 7px 8px;
+    background: rgba(11, 16, 33, 0.72);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+    transition: border-color 0.25s, background 0.25s;
   }
-  .wave-wrap { width: 100%; height: 40px; margin-bottom: 12px; }
-  canvas#wave { width: 100%; height: 100%; display: block; }
-  .input-row {
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
-  }
+  .input-dock:hover { border-color: rgba(56,189,248,0.18); }
+  .input-dock.recording { border-color: rgba(56,189,248,0.3); background: rgba(11, 16, 33, 0.82); }
   #micBtn {
-    position: relative; z-index: 2;
-    width: 52px; height: 52px; border-radius: 50%;
-    border: 1.5px solid var(--border); background: var(--surface-2);
-    color: var(--text-muted); cursor: pointer;
+    width: 34px; height: 34px; border-radius: 50%;
+    border: none; background: transparent;
+    color: var(--accent); cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s ease;
+    transition: background 0.2s, transform 0.1s;
     -webkit-tap-highlight-color: transparent; user-select: none;
   }
-  #micBtn svg { width: 20px; height: 20px; }
-  #micBtn:hover { border-color: var(--text-dim); color: var(--text-secondary); }
+  #micBtn svg { width: 18px; height: 18px; }
+  #micBtn:hover { background: var(--accent-soft); }
   #micBtn:active { transform: scale(0.95); }
-  .mic-ring {
-    position: absolute; inset: -6px; z-index: 1;
-    border-radius: 50%; border: 2px solid transparent;
-    transition: all 0.3s ease;
+  #micBtn.recording { background: var(--accent-soft); }
+  .wave-wrap {
+    width: 52px; height: 18px;
+    display: flex; align-items: center; justify-content: center; gap: 3px;
   }
-  #micBtn.recording { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
-  #micBtn.recording ~ .mic-ring {
-    border-color: rgba(245,158,11,0.25);
-    animation: ring-pulse 1.5s ease-in-out infinite;
+  .wave-bar {
+    width: 3px; border-radius: 2px;
+    background: var(--accent);
+    opacity: 0.35;
+    animation: wave-idle 1.4s ease-in-out infinite;
   }
-  #micBtn.processing { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); }
-  #micBtn.processing ~ .mic-ring {
-    border-color: rgba(59,130,246,0.2);
-    animation: ring-pulse 1s ease-in-out infinite;
+  .wave-bar:nth-child(1) { height: 6px; animation-delay: 0s; }
+  .wave-bar:nth-child(2) { height: 10px; animation-delay: 0.15s; }
+  .wave-bar:nth-child(3) { height: 14px; animation-delay: 0.3s; }
+  .wave-bar:nth-child(4) { height: 10px; animation-delay: 0.45s; }
+  .wave-bar:nth-child(5) { height: 6px; animation-delay: 0.6s; }
+  @keyframes wave-idle {
+    0%, 100% { transform: scaleY(0.6); opacity: 0.25; }
+    50% { transform: scaleY(1); opacity: 0.7; }
   }
-  @keyframes ring-pulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.15); opacity: 0.4; }
+  .input-dock.recording .wave-bar { animation-name: wave-active; }
+  @keyframes wave-active {
+    0%, 100% { transform: scaleY(0.5); opacity: 0.4; }
+    50% { transform: scaleY(1.2); opacity: 1; }
   }
   .status-text {
-    font-size: 12.5px; font-weight: 500; color: var(--text-dim);
-    transition: color 0.25s;
+    font-size: 12px; font-weight: 500; color: var(--text-muted);
+    transition: color 0.25s; white-space: nowrap;
   }
   .status-text.recording { color: var(--accent); }
   .status-text.error { color: var(--red); }
   .status-text.ready { color: var(--emerald); }
 
+  /* ── Processing bubble ── */
+  .msg-processing {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px; margin-bottom: 16px;
+    background: rgba(17, 24, 39, 0.7); border: 1px solid var(--border);
+    border-radius: var(--radius) var(--radius) var(--radius) 4px;
+    backdrop-filter: blur(8px); animation: msg-in 0.3s ease;
+  }
+  .msg-processing-dots { display: flex; gap: 5px; }
+  .msg-processing-dots span {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); animation: dot-bounce 1.4s ease-in-out infinite;
+  }
+  .msg-processing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .msg-processing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dot-bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+  .msg-processing-text {
+    font-size: 13px; color: var(--text-secondary); font-weight: 500;
+  }
+
+  /* ── Timing badge ── */
+  .msg-metric {
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    color: var(--emerald); background: var(--emerald-soft);
+    padding: 2px 8px; border-radius: 999px; margin-left: 8px;
+  }
+
+  /* ── Text input ── */
+  .text-input {
+    flex: 1; min-width: 0;
+    background: rgba(2, 6, 23, 0.45); border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 10px 16px; font-family: var(--font);
+    font-size: 13px; color: var(--text); outline: none;
+    transition: border-color 0.2s;
+  }
+  .text-input:focus { border-color: var(--accent); }
+  .text-input::placeholder { color: var(--text-dim); }
+  .text-send-btn {
+    flex-shrink: 0; background: var(--accent-soft);
+    border: 1px solid rgba(56,189,248,0.2); border-radius: 999px;
+    color: var(--accent); padding: 8px 16px; cursor: pointer;
+    font-size: 12px; font-weight: 600; font-family: var(--font);
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .text-send-btn:hover { background: rgba(56,189,248,0.22); }
+  .text-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── Deploy visualization ── */
+  .deploy-viz {
+    margin-top: 12px; padding: 14px 18px;
+    background: rgba(17, 24, 39, 0.6); border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .deploy-viz-title {
+    font-size: 11px; font-weight: 600; color: var(--violet);
+    text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;
+  }
+  .deploy-flow {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  }
+  .deploy-node {
+    padding: 6px 12px; background: var(--violet-soft);
+    border: 1px solid rgba(167,139,250,0.18); border-radius: 8px;
+    font-family: var(--mono); font-size: 10.5px; color: var(--violet);
+  }
+  .deploy-arrow { color: var(--text-dim); font-size: 12px; padding: 0 2px; }
+
+  /* ── Export button ── */
+  .export-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; margin-top: 10px;
+    background: rgba(11, 16, 33, 0.5); border: 1px solid var(--border);
+    border-radius: 999px; cursor: pointer;
+    font-size: 11px; color: var(--text-muted); font-family: var(--font);
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .export-btn:hover { color: var(--accent); border-color: rgba(56,189,248,0.25); background: var(--accent-soft); }
+  .export-btn svg { width: 12px; height: 12px; }
+
   /* ── Responsive ── */
   @media (max-width: 640px) {
+    .nav { padding: 0 20px; height: 60px; }
     .nav-tag { display: none; }
-    .input-area { padding: 12px 16px 20px; }
-    .chat-area { padding: 16px 12px; }
+    .chat-area { padding: 20px 16px 110px; }
+    .input-dock { bottom: 14px; padding: 6px 12px 6px 6px; }
+    #micBtn { width: 32px; height: 32px; }
+    #micBtn svg { width: 17px; height: 17px; }
+    .wave-wrap { width: 44px; }
+    .status-text { font-size: 11px; }
+    .welcome h2 { font-size: 22px; }
   }
 </style>
 </head>
 <body>
 
-<div class="bg-mesh"></div>
+<div class="bg-orb"></div>
+<div class="bg-grid"></div>
+<div class="bg-noise"></div>
 
 <!-- Navigation -->
 <nav class="nav">
   <a href="/" class="nav-brand">
     <div class="nav-logo">
       <svg viewBox="0 0 24 24" fill="none">
-        <path d="M7 4v16M12 8v8M17 6v12" stroke="#09090b" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M7 4v16M12 8v8M17 6v12" stroke="#020617" stroke-width="2.5" stroke-linecap="round"/>
       </svg>
     </div>
     <span class="nav-name">VoicOps</span>
-    <span class="nav-tag">v0.2</span>
   </a>
   <div class="nav-links">
     <a href="/" class="nav-link">Home</a>
@@ -327,7 +481,7 @@
 <div class="app">
   <div class="chat-area" id="chatArea">
     <div class="welcome" id="welcome">
-      <div class="welcome-icon">
+      <div class="welcome-orb">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
           <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -344,41 +498,132 @@
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Input area -->
-  <div class="input-area">
-    <div class="wave-wrap"><canvas id="wave"></canvas></div>
-    <div class="input-row">
-      <div style="position:relative;">
-        <button id="micBtn" aria-label="Hold to record">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-            <line x1="12" y1="19" x2="12" y2="23"></line>
-            <line x1="8" y1="23" x2="16" y2="23"></line>
-          </svg>
-        </button>
-        <div class="mic-ring"></div>
-      </div>
-      <div class="status-text" id="status">Hold to record — speak your stack</div>
-    </div>
-    <button id="clearHistory" class="clear-history" onclick="clearHistory()">Clear history</button>
+<!-- Floating input dock -->
+<div class="input-dock" id="inputDock">
+  <button id="micBtn" aria-label="Hold to record">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+      <line x1="12" y1="19" x2="12" y2="23"></line>
+      <line x1="8" y1="23" x2="16" y2="23"></line>
+    </svg>
+  </button>
+  <div class="wave-wrap" id="waveWrap">
+    <span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span>
   </div>
+  <input type="text" id="textInput" class="text-input" placeholder="Or type your stack..." style="display:none;">
+  <button id="textSendBtn" class="text-send-btn" style="display:none;">Send</button>
+  <div class="status-text" id="status">Hold to record</div>
+  <button id="clearHistory" class="clear-history" onclick="clearHistory()">Clear</button>
 </div>
 
 <script>
   const micBtn = document.getElementById('micBtn');
   const statusEl = document.getElementById('status');
+  const inputDock = document.getElementById('inputDock');
   const chatArea = document.getElementById('chatArea');
   const welcomeEl = document.getElementById('welcome');
   const clearHistoryBtn = document.getElementById('clearHistory');
-  const canvas = document.getElementById('wave');
-  const ctx = canvas.getContext('2d');
+  const textInput = document.getElementById('textInput');
+  const textSendBtn = document.getElementById('textSendBtn');
 
   let mediaRecorder, audioChunks = [];
-  let audioCtx, analyser, dataArray, rafId, stream;
+  let audioCtx, analyser, dataArray, stream;
+  let spaceHeld = false;
   const STORAGE_KEY = 'voicops_chat_history';
   let chatHistory = [];
+
+  // ── Processing bubble ──
+  let processingEl = null;
+  function showProcessing(text) {
+    hideProcessing();
+    processingEl = document.createElement('div');
+    processingEl.className = 'msg-processing';
+    processingEl.innerHTML = '<div class="msg-processing-dots"><span></span><span></span><span></span></div><div class="msg-processing-text">' + (text || 'Generating configs...') + '</div>';
+    chatArea.appendChild(processingEl);
+    scrollToBottom();
+  }
+  function hideProcessing() {
+    if (processingEl) { processingEl.remove(); processingEl = null; }
+  }
+
+  // ── Success sound (Web Audio API) ──
+  function playSuccess() {
+    try {
+      var ac = new (window.AudioContext || window.webkitAudioContext)();
+      var now = ac.currentTime;
+      // Soft chime: C5 + E5 + G5
+      var notes = [523.25, 659.25, 783.99];
+      notes.forEach(function(freq, i) {
+        var osc = ac.createOscillator();
+        var gain = ac.createGain();
+        osc.connect(gain); gain.connect(ac.destination);
+        osc.type = 'sine'; osc.frequency.value = freq;
+        var t = now + i * 0.04;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.08, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+        osc.start(t); osc.stop(t + 0.4);
+      });
+      setTimeout(function() { ac.close(); }, 600);
+    } catch(e) {}
+  }
+
+  // ── Show/hide text input (error recovery) ──
+  function showTextInput() {
+    textInput.style.display = 'block';
+    textSendBtn.style.display = 'block';
+    textInput.focus();
+  }
+  function hideTextInput() {
+    textInput.style.display = 'none';
+    textSendBtn.style.display = 'none';
+    textInput.value = '';
+  }
+
+  // ── Export summary as markdown ──
+  function exportSummary(msg) {
+    var md = '# VoicOps Generated Config\n\n';
+    md += '_Generated at ' + (msg.timestamp || new Date().toLocaleTimeString()) + '_\n\n';
+    var rawT = (msg.transcript || '').trim();
+    var corrT = (msg.corrected_transcript || '').trim();
+    if (rawT) { md += '## Transcript\n- **Heard:** "' + rawT + '"\n- **Understood:** "' + (corrT || rawT) + '"\n\n'; }
+    if (msg.dockerfile) md += '## Dockerfile\n```dockerfile\n' + msg.dockerfile + '\n```\n\n';
+    if (msg.docker_compose) md += '## docker-compose.yml\n```yaml\n' + msg.docker_compose + '\n```\n\n';
+    if (msg.terraform) md += '## main.tf (Alibaba Cloud)\n```hcl\n' + msg.terraform + '\n```\n\n';
+    if (msg.time_taken) md += '_Generated in ' + msg.time_taken + 's_\n';
+    var blob = new Blob([md], { type: 'text/markdown' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href = url; a.download = 'voicops-config.md'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ── Deploy visualization ──
+  function renderDeployViz(group, msg) {
+    if (!msg.terraform) return;
+    var viz = document.createElement('div');
+    viz.className = 'deploy-viz';
+    var services = [];
+    try {
+      var tfText = msg.terraform;
+      if (tfText.indexOf('alicloud_vpc') >= 0) services.push('VPC');
+      if (tfText.indexOf('alicloud_vswitch') >= 0) services.push('VSwitch');
+      if (tfText.indexOf('alicloud_security_group') >= 0) services.push('Security Group');
+      if (tfText.indexOf('alicloud_instance') >= 0) services.push('ECS Instance');
+      if (tfText.indexOf('alicloud_disk') >= 0) services.push('Cloud Disk');
+    } catch(e) {}
+    if (services.length === 0) return;
+    var html = '<div class="deploy-viz-title">Alibaba Cloud Architecture</div><div class="deploy-flow">';
+    services.forEach(function(s, i) {
+      if (i > 0) html += '<span class="deploy-arrow">\u2192</span>';
+      html += '<span class="deploy-node">' + s + '</span>';
+    });
+    html += '</div>';
+    viz.innerHTML = html;
+    group.appendChild(viz);
+  }
 
   // ── Persistence ──
   function saveHistory() {
@@ -411,7 +656,11 @@
   }
   function scrollToBottom() { requestAnimationFrame(function() { chatArea.scrollTop = chatArea.scrollHeight; }); }
 
-  function setStatus(t, c) { statusEl.textContent = t; statusEl.className = 'status-text' + (c ? ' ' + c : ''); }
+  function setStatus(t, c) {
+    statusEl.textContent = t; statusEl.className = 'status-text' + (c ? ' ' + c : '');
+    if (c === 'recording') { inputDock.classList.add('recording'); }
+    else { inputDock.classList.remove('recording'); }
+  }
   function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
   // ── Syntax highlighters ──
@@ -427,36 +676,88 @@
     return escapeHtml(t).split('\n').map(function(l){if(/^\s*#/.test(l))return'<span class="tok-cmt">'+l+'</span>';var bm=l.match(/^(\s*)(resource|variable|provider|data|output|module|locals|terraform)(\s.*)?$/);if(bm&&kws.indexOf(bm[2])>=0)return bm[1]+'<span class="tok-kw">'+bm[2]+'</span><span class="tok-plain">'+(bm[3]||'')+'</span>';var am=l.match(/^(\s*)([\w.]+)(\s*=\s*)(.*)?$/);if(am){var v=am[4]||'';var vc=/"/.test(v)?'tok-str':'tok-plain';return am[1]+'<span class="tok-key">'+am[2]+'</span>'+am[3]+'<span class="'+vc+'">'+v+'</span>';}return'<span class="tok-plain">'+l+'</span>';}).map(function(l){return'<span class="line">'+l+'</span>';}).join('');
   }
 
-  // ── Render message ──
+  // ── Render message group (transcript bubble + file cards) ──
   function renderMessage(msg, animate) {
     if (animate === undefined) animate = true;
-    var el = document.createElement('div');
-    el.className = 'chat-msg';
-    if (!animate) el.style.animation = 'none';
+    var group = document.createElement('div');
+    group.className = 'msg-group';
+    if (!animate) group.style.animation = 'none';
     var time = msg.timestamp || '';
     var rawT = (msg.transcript || '').trim();
     var corrT = (msg.corrected_transcript || '').trim();
-    var hasD=!!msg.dockerfile, hasC=!!msg.docker_compose, hasT=!!msg.terraform;
     var v = msg.validation || {};
-    var tH = '<div class="msg-transcript">';
-    if (rawT) { tH+='<div class="msg-heard">Heard: <em>"'+escapeHtml(rawT)+'"</em></div><div class="msg-understood">Understood: <em>"'+escapeHtml(corrT||rawT)+'"</em></div>'; }
-    if (msg.unsupported&&msg.unsupported.length) tH+='<div class="msg-unsupported">Not supported: '+msg.unsupported.map(escapeHtml).join(', ')+'</div>';
-    tH += '</div>';
-    var fH = '<div class="msg-files">';
+
+    // Group header with timestamp + close
+    var headEl = document.createElement('div');
+    headEl.className = 'msg-group-head';
+    headEl.innerHTML = '<span class="msg-group-time">' + time + (msg.time_taken ? '<span class="msg-metric">' + msg.time_taken + 's</span>' : '') + '</span><button class="msg-group-close" title="Remove this turn">\u00d7</button>';
+    headEl.querySelector('.msg-group-close').addEventListener('click', function() { removeMessage(msg); });
+    group.appendChild(headEl);
+
+    // Transcript bubble (Heard + Understood)
+    if (rawT) {
+      var tEl = document.createElement('div');
+      tEl.className = 'msg-transcript';
+      var tH = '<div class="msg-heard">Heard: <em>"' + escapeHtml(rawT) + '"</em></div>';
+      tH += '<div class="msg-understood">Understood: <em>"' + escapeHtml(corrT || rawT) + '"</em></div>';
+      if (msg.unsupported && msg.unsupported.length) {
+        tH += '<div class="msg-unsupported">Not supported: ' + msg.unsupported.map(escapeHtml).join(', ') + '</div>';
+      }
+      tEl.innerHTML = tH;
+      group.appendChild(tEl);
+    }
+
+    // File data
     var fd = [];
-    if (hasD) fd.push({c:'docker',l:'D',n:'Dockerfile',x:msg.dockerfile,h:'df',v:v.dockerfile});
-    if (hasC) fd.push({c:'compose',l:'C',n:'docker-compose.yml',x:msg.docker_compose,h:'yaml',v:null});
-    if (hasT) fd.push({c:'terraform',l:'T',n:'main.tf',x:msg.terraform,h:'hcl',v:v.terraform});
-    if (fd.length>0) { fd.forEach(function(f,i){ var b=''; if(f.v){if(!f.v.tool_available)b='<span class="file-badge na">N/A</span>';else if(f.v.healing_count>0&&f.v.valid)b='<span class="file-badge healed">healed '+f.v.healing_count+'x</span>';else if(f.v.valid)b='<span class="file-badge pass">valid</span>';else b='<span class="file-badge fail">invalid</span>';} var hl=f.h==='df'?highlightDockerfile:f.h==='yaml'?highlightYaml:highlightHCL; fH+='<div class="file-card"><div class="file-head"><div class="file-name"><span class="file-icon '+f.c+'">'+f.l+'</span>'+f.n+b+'</div><div class="file-actions"><button class="copy-btn" data-idx="'+i+'" title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button><button class="dl-btn" data-idx="'+i+'" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button></div></div><div class="file-body">'+hl(f.x)+'</div></div>'; }); }
-    else fH += '<div class="msg-empty-result">No services detected — try a clearer voice command.</div>';
-    fH += '</div>';
-    el.innerHTML = '<div class="msg-head"><span class="msg-time">'+time+'</span><button class="msg-close" title="Remove">\u00d7</button></div>' + tH + fH;
-    el.querySelector('.msg-close').addEventListener('click', function(){ removeMessage(msg); });
-    el.querySelectorAll('.copy-btn').forEach(function(btn){var i=parseInt(btn.dataset.idx);btn.addEventListener('click',function(){navigator.clipboard.writeText(fd[i].x);btn.textContent='\u2713';setTimeout(function(){btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';},1200);});});
-    el.querySelectorAll('.dl-btn').forEach(function(btn){var i=parseInt(btn.dataset.idx);btn.addEventListener('click',function(){var f=fd[i];var blob=new Blob([f.x],{type:'text/plain'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=f.n;a.click();URL.revokeObjectURL(url);});});
-    chatArea.appendChild(el);
+    if (!!msg.dockerfile) fd.push({c:'docker',l:'D',n:'Dockerfile',x:msg.dockerfile,h:'df',v:v.dockerfile});
+    if (!!msg.docker_compose) fd.push({c:'compose',l:'C',n:'docker-compose.yml',x:msg.docker_compose,h:'yaml',v:null});
+    if (!!msg.terraform) fd.push({c:'terraform',l:'T',n:'main.tf',x:msg.terraform,h:'hcl',v:v.terraform});
+
+    if (fd.length > 0) {
+      fd.forEach(function(f, i) {
+        var badge = '';
+        if (f.v) {
+          if (!f.v.tool_available) badge = '<span class="file-badge na">N/A</span>';
+          else if (f.v.healing_count > 0 && f.v.valid) badge = '<span class="file-badge healed">healed ' + f.v.healing_count + 'x</span>';
+          else if (f.v.valid) badge = '<span class="file-badge pass">valid</span>';
+          else badge = '<span class="file-badge fail">invalid</span>';
+        }
+        var hlFn = f.h === 'df' ? highlightDockerfile : f.h === 'yaml' ? highlightYaml : highlightHCL;
+        var card = document.createElement('div');
+        card.className = 'file-card';
+        card.innerHTML = '<div class="file-head"><div class="file-name"><span class="file-icon ' + f.c + '">' + f.l + '</span>' + f.n + badge + '</div><div class="file-actions"><button class="copy-btn" title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button><button class="dl-btn" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button></div></div><div class="file-body">' + hlFn(f.x) + '</div>';
+        card.querySelector('.copy-btn').addEventListener('click', function(e) {
+          var btn = e.currentTarget;
+          navigator.clipboard.writeText(f.x);
+          btn.textContent = '\u2713';
+          setTimeout(function() { btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'; }, 1200);
+        });
+        card.querySelector('.dl-btn').addEventListener('click', function() {
+          var blob = new Blob([f.x], { type: 'text/plain' });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a'); a.href = url; a.download = f.n; a.click();
+          URL.revokeObjectURL(url);
+        });
+        group.appendChild(card);
+      });
+      // Deploy visualization
+      renderDeployViz(group, msg);
+      // Export button
+      var expBtn = document.createElement('button');
+      expBtn.className = 'export-btn';
+      expBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>Export as Markdown';
+      expBtn.addEventListener('click', function() { exportSummary(msg); });
+      group.appendChild(expBtn);
+    } else {
+      var emptyEl = document.createElement('div');
+      emptyEl.className = 'msg-empty-result';
+      emptyEl.textContent = 'No services detected \u2014 try a clearer voice command.';
+      group.appendChild(emptyEl);
+    }
+
+    chatArea.appendChild(group);
     if (animate) scrollToBottom();
-    return el;
+    return group;
   }
 
   // ── WebM to WAV ──
@@ -476,18 +777,102 @@
     return {blob:new Blob([wb],{type:'audio/wav'}),duration:len/sr};
   }
 
-  // ── Canvas ──
-  function resizeCanvas(){var r=canvas.getBoundingClientRect();canvas.width=r.width*devicePixelRatio;canvas.height=r.height*devicePixelRatio;}
-  window.addEventListener('resize',resizeCanvas);resizeCanvas();
-  function drawIdle(){var w=canvas.width,h=canvas.height,bc=48,gap=w/bc;ctx.clearRect(0,0,w,h);for(var i=0;i<bc;i++){ctx.fillStyle='#27272a';ctx.beginPath();ctx.roundRect(i*gap+gap*.25,h/2-2,gap*.5,4,1.5);ctx.fill();}}
-  drawIdle();
-  function drawLive(){analyser.getByteFrequencyData(dataArray);var w=canvas.width,h=canvas.height,bc=48,gap=w/bc,step=Math.floor(dataArray.length/bc);ctx.clearRect(0,0,w,h);for(var i=0;i<bc;i++){var v=dataArray[i*step]/255,bh=Math.max(3,v*h*0.8);var g=ctx.createLinearGradient(0,h/2-bh/2,0,h/2+bh/2);g.addColorStop(0,'#f59e0b');g.addColorStop(1,'#d97706');ctx.fillStyle=g;ctx.globalAlpha=0.5+v*0.5;ctx.beginPath();ctx.roundRect(i*gap+gap*.25,h/2-bh/2,gap*.5,bh,2);ctx.fill();}ctx.globalAlpha=1;rafId=requestAnimationFrame(drawLive);}
-
   // ── Recording ──
-  async function startRecording(){try{stream=await navigator.mediaDevices.getUserMedia({audio:true});audioCtx=new(window.AudioContext||window.webkitAudioContext)();var src=audioCtx.createMediaStreamSource(stream);analyser=audioCtx.createAnalyser();analyser.fftSize=128;dataArray=new Uint8Array(analyser.frequencyBinCount);src.connect(analyser);drawLive();mediaRecorder=new MediaRecorder(stream);audioChunks=[];mediaRecorder.ondataavailable=function(e){audioChunks.push(e.data);};mediaRecorder.onstop=async function(){var wb=new Blob(audioChunks,{type:'audio/webm'});stream.getTracks().forEach(function(t){t.stop();});cancelAnimationFrame(rafId);audioCtx.close();drawIdle();var r=await webmToWav(wb);if(r.duration<0.5){setStatus('Too short — hold longer','error');micBtn.classList.remove('recording','processing');return;}await sendAudio(r.blob);};mediaRecorder.start();micBtn.classList.add('recording');setStatus('Listening...','recording');}catch(e){setStatus('Microphone access denied','error');}}
-  function stopRecording(){if(mediaRecorder&&mediaRecorder.state!=='inactive')mediaRecorder.stop();micBtn.classList.remove('recording');micBtn.classList.add('processing');setStatus('Processing...','');}
+  async function startRecording(){
+    try{
+      stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+      var src=audioCtx.createMediaStreamSource(stream);
+      analyser=audioCtx.createAnalyser(); analyser.fftSize=128;
+      dataArray=new Uint8Array(analyser.frequencyBinCount);
+      src.connect(analyser);
+      mediaRecorder=new MediaRecorder(stream); audioChunks=[];
+      mediaRecorder.ondataavailable=function(e){audioChunks.push(e.data);};
+      mediaRecorder.onstop=async function(){
+        var wb=new Blob(audioChunks,{type:'audio/webm'});
+        stream.getTracks().forEach(function(t){t.stop();});
+        audioCtx.close();
+        var r=await webmToWav(wb);
+        if(r.duration<0.5){setStatus('Too short \u2014 hold longer','error');micBtn.classList.remove('recording','processing');return;}
+        await sendAudio(r.blob);
+      };
+      mediaRecorder.start();
+      micBtn.classList.add('recording'); setStatus('Listening...','recording');
+    }catch(e){setStatus('Microphone access denied','error');}
+  }
+  function stopRecording(){
+    if(mediaRecorder&&mediaRecorder.state!=='inactive')mediaRecorder.stop();
+    micBtn.classList.remove('recording'); micBtn.classList.add('processing'); setStatus('Processing...','');
+  }
 
-  async function sendAudio(audioBlob){var fd=new FormData();fd.append('audio',audioBlob,'command.wav');try{setStatus('Generating configs...','');var res=await fetch('/generate-config',{method:'POST',body:fd});if(!res.ok)throw new Error(res.status===502?'Service unreachable.':'Failed ('+res.status+')');var data=await res.json();micBtn.classList.remove('processing');var msg={timestamp:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}),transcript:data.transcript||'',corrected_transcript:data.corrected_transcript||'',unsupported:data.unsupported||[],dockerfile:data.dockerfile||null,docker_compose:data.docker_compose||null,terraform:data.terraform||null,validation:data.validation||{}};if(data.dockerfile||data.docker_compose||data.terraform){var parts=[];if(data.dockerfile||data.docker_compose)parts.push('Docker');if(data.terraform)parts.push('Terraform');setStatus(parts.join(' + ')+' generated','ready');}else{setStatus('No service name detected');}welcomeEl.style.display='none';chatHistory.push(msg);renderMessage(msg);saveHistory();}catch(e){micBtn.classList.remove('processing');setStatus(e.message,'error');}}
+  async function sendAudio(audioBlob){
+    var fd=new FormData(); fd.append('audio',audioBlob,'command.wav');
+    showProcessing('Transcribing & generating configs...');
+    setStatus('Generating configs...','');
+    try{
+      var res=await fetch('/generate-config',{method:'POST',body:fd});
+      hideProcessing();
+      micBtn.classList.remove('processing');
+      if(!res.ok){
+        if(res.status===502||res.status===503){setStatus('Speech service busy \u2014 try typing instead','error');showTextInput();return;}
+        throw new Error('Failed ('+res.status+')');
+      }
+      var data=await res.json();
+      var msg={timestamp:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}),transcript:data.transcript||'',corrected_transcript:data.corrected_transcript||'',unsupported:data.unsupported||[],dockerfile:data.dockerfile||null,docker_compose:data.docker_compose||null,terraform:data.terraform||null,validation:data.validation||{},time_taken:data.time_taken||null};
+      if(data.dockerfile||data.docker_compose||data.terraform){
+        var parts=[];
+        if(data.dockerfile||data.docker_compose)parts.push('Docker');
+        if(data.terraform)parts.push('Terraform');
+        setStatus(parts.join(' + ')+' generated','ready');
+        playSuccess();
+      }else{setStatus('No service name detected');}
+      welcomeEl.style.display='none';
+      chatHistory.push(msg); renderMessage(msg); saveHistory();
+    }catch(e){hideProcessing();micBtn.classList.remove('processing');setStatus(e.message,'error');showTextInput();}
+  }
+
+  // ── Text input send ──
+  async function sendText(){
+    var text=textInput.value.trim();
+    if(!text)return;
+    textSendBtn.disabled=true;
+    showProcessing('Generating configs for "'+escapeHtml(text)+'"...');
+    setStatus('Generating...','');
+    try{
+      var fd=new FormData(); fd.append('text',text);
+      var res=await fetch('/generate-text',{method:'POST',body:fd});
+      hideProcessing();
+      textSendBtn.disabled=false;
+      if(!res.ok)throw new Error('Failed ('+res.status+')');
+      var data=await res.json();
+      var msg={timestamp:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}),transcript:text,corrected_transcript:data.corrected_transcript||'',unsupported:data.unsupported||[],dockerfile:data.dockerfile||null,docker_compose:data.docker_compose||null,terraform:data.terraform||null,validation:data.validation||{},time_taken:data.time_taken||null};
+      if(data.dockerfile||data.docker_compose||data.terraform){
+        var parts=[];
+        if(data.dockerfile||data.docker_compose)parts.push('Docker');
+        if(data.terraform)parts.push('Terraform');
+        setStatus(parts.join(' + ')+' generated','ready');
+        playSuccess();
+      }else{setStatus('No service name detected');}
+      welcomeEl.style.display='none';
+      chatHistory.push(msg); renderMessage(msg); saveHistory();
+      textInput.value='';
+    }catch(e){hideProcessing();textSendBtn.disabled=false;setStatus(e.message,'error');}
+  }
+  textSendBtn.addEventListener('click',sendText);
+  textInput.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendText();}});
+
+  // ── Keyboard shortcut: Space to record ──
+  document.addEventListener('keydown',function(e){
+    if(e.code==='Space'&&!spaceHeld&&document.activeElement!==textInput&&!e.repeat){
+      e.preventDefault(); spaceHeld=true; startRecording();
+    }
+    if(e.key==='Escape'){hideTextInput();}
+  });
+  document.addEventListener('keyup',function(e){
+    if(e.code==='Space'&&spaceHeld){
+      e.preventDefault(); spaceHeld=false; stopRecording();
+    }
+  });
 
   micBtn.addEventListener('mousedown',startRecording);
   micBtn.addEventListener('mouseup',stopRecording);
@@ -495,7 +880,15 @@
   micBtn.addEventListener('touchstart',function(e){e.preventDefault();startRecording();});
   micBtn.addEventListener('touchend',function(e){e.preventDefault();stopRecording();});
 
+  // ── Demo mode (auto-trigger from URL param) ──
+  var demoPrompt = new URLSearchParams(window.location.search).get('demo');
+  if(demoPrompt){
+    textInput.value=demoPrompt;
+    setTimeout(function(){sendText();},600);
+  }
+
   restoreHistory();
 </script>
+
 </body>
 </html>

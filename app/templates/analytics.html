@@ -9,6 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23020617'/%3E%3Cpath d='M7 4v16M12 8v8M17 6v12' stroke='%2338bdf8' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
   :root {
+    /* ── Core palette (dark default) ── */
     --bg: #020617;
     --surface: #0b1021;
     --surface-2: #111827;
@@ -29,12 +30,56 @@
     --blue-soft: rgba(96, 165, 250, 0.14);
     --violet: #a78bfa;
     --violet-soft: rgba(167, 139, 250, 0.12);
+    --violet-glow: rgba(167, 139, 250, 0.18);
     --red: #f87171;
     --red-soft: rgba(248, 113, 113, 0.14);
+    /* ── Component surfaces ── */
+    --nav-bg: rgba(2, 6, 23, 0.78);
+    --card-bg: rgba(11, 16, 33, 0.6);
+    --input-bg: rgba(2, 6, 23, 0.55);
+    --btn-text: #020617;
+    --logo-icon: #020617;
+    --orb-opacity: 0.5;
+    --grid-opacity: 0.05;
+    --noise-opacity: 0.03;
     --radius: 14px;
+    --radius-lg: 20px;
     --radius-sm: 10px;
     --font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    --mono: 'JetBrains Mono', 'SF Mono', monospace;
+    --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  }
+  .light-theme {
+    --bg: #f8fafc;
+    --surface: rgba(255, 255, 255, 0.78);
+    --surface-2: #f1f5f9;
+    --surface-3: #e2e8f0;
+    --border: rgba(148, 163, 184, 0.28);
+    --border-strong: rgba(148, 163, 184, 0.38);
+    --text: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+    --accent: #0ea5e9;
+    --accent-2: #0284c7;
+    --accent-soft: rgba(14, 165, 233, 0.12);
+    --accent-glow: rgba(14, 165, 233, 0.2);
+    --emerald: #10b981;
+    --emerald-soft: rgba(16, 185, 129, 0.12);
+    --blue: #3b82f6;
+    --blue-soft: rgba(59, 130, 246, 0.12);
+    --violet: #8b5cf6;
+    --violet-soft: rgba(139, 92, 246, 0.12);
+    --violet-glow: rgba(139, 92, 246, 0.15);
+    --red: #ef4444;
+    --red-soft: rgba(239, 68, 68, 0.12);
+    --nav-bg: rgba(255, 255, 255, 0.78);
+    --card-bg: rgba(255, 255, 255, 0.65);
+    --input-bg: rgba(241, 245, 249, 0.85);
+    --btn-text: #ffffff;
+    --logo-icon: #ffffff;
+    --orb-opacity: 0.2;
+    --grid-opacity: 0.08;
+    --noise-opacity: 0.02;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,7 +96,7 @@
   }
   .bg-orb::before, .bg-orb::after {
     content: ''; position: absolute; border-radius: 50%;
-    filter: blur(100px); opacity: 0.5;
+    filter: blur(100px); opacity: var(--orb-opacity);
     animation: orb-float 20s ease-in-out infinite alternate;
   }
   .bg-orb::before {
@@ -72,14 +117,14 @@
   .bg-grid {
     position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background-image:
-      linear-gradient(rgba(148,163,184,0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(148,163,184,0.05) 1px, transparent 1px);
+      linear-gradient(rgba(148,163,184,var(--grid-opacity)) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,var(--grid-opacity)) 1px, transparent 1px);
     background-size: 56px 56px;
     mask-image: radial-gradient(ellipse 90% 70% at 50% 20%, black 30%, transparent 80%);
     -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 20%, black 30%, transparent 80%);
   }
   .bg-noise {
-    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.03;
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: var(--noise-opacity);
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
@@ -88,7 +133,7 @@
     position: sticky; top: 0; z-index: 50;
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 32px; height: 64px;
-    background: rgba(2, 6, 23, 0.72);
+    background: var(--nav-bg);
     backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border);
   }
@@ -118,6 +163,16 @@
   }
   .nav-link:hover { color: var(--text); background: rgba(148,163,184,0.08); }
   .nav-link.active { color: var(--text); background: var(--surface-2); border: 1px solid var(--border); }
+  .theme-toggle {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--surface-2);
+    color: var(--text-secondary); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    margin-left: 4px;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+  }
+  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .theme-toggle svg { width: 16px; height: 16px; }
 
   /* ── Layout ── */
   .main {
@@ -159,7 +214,7 @@
   }
 
   .stat-card {
-    background: rgba(11, 16, 33, 0.6);
+    background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 22px;
@@ -182,7 +237,7 @@
 
   /* ── Table ── */
   .table-card {
-    background: rgba(11, 16, 33, 0.6);
+    background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
@@ -245,7 +300,7 @@
   <a href="/" class="nav-brand">
     <div class="nav-logo">
       <svg viewBox="0 0 24 24" fill="none">
-        <path d="M7 4v16M12 8v8M17 6v12" stroke="#020617" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M7 4v16M12 8v8M17 6v12" stroke="var(--logo-icon)" stroke-width="2.5" stroke-linecap="round"/>
       </svg>
     </div>
     <span class="nav-name">VoicOps</span>
@@ -254,6 +309,10 @@
     <a href="/" class="nav-link">Home</a>
     <a href="/generate" class="nav-link">Generate</a>
     <a href="/analytics" class="nav-link active">Analytics</a>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
   </div>
 </nav>
 
@@ -345,6 +404,29 @@
 
   fetchAnalytics();
   setInterval(fetchAnalytics, 10000);
+</script>
+
+<script>
+  const themeToggle = document.getElementById('themeToggle');
+  const THEME_KEY = 'voicops_theme';
+  function applyTheme(theme) {
+    if (theme === 'light') { document.body.classList.add('light-theme'); }
+    else { document.body.classList.remove('light-theme'); }
+    updateThemeIcon(theme);
+  }
+  function updateThemeIcon(theme) {
+    if (!themeToggle) return;
+    themeToggle.querySelector('.moon').style.display = theme === 'light' ? 'none' : 'block';
+    themeToggle.querySelector('.sun').style.display = theme === 'light' ? 'block' : 'none';
+  }
+  function toggleTheme() {
+    var isLight = document.body.classList.toggle('light-theme');
+    var theme = isLight ? 'light' : 'dark';
+    try { localStorage.setItem(THEME_KEY, theme); } catch(e) {}
+    updateThemeIcon(theme);
+  }
+  try { applyTheme(localStorage.getItem(THEME_KEY) || 'dark'); } catch(e) { applyTheme('dark'); }
+  if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
 </script>
 
 </body>

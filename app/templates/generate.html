@@ -9,6 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23020617'/%3E%3Cpath d='M7 4v16M12 8v8M17 6v12' stroke='%2338bdf8' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
   :root {
+    /* ── Core palette (dark default) ── */
     --bg: #020617;
     --surface: #0b1021;
     --surface-2: #111827;
@@ -32,11 +33,61 @@
     --violet-glow: rgba(167, 139, 250, 0.18);
     --red: #f87171;
     --red-soft: rgba(248, 113, 113, 0.14);
+    /* ── Component surfaces ── */
+    --nav-bg: rgba(2, 6, 23, 0.78);
+    --dock-bg: rgba(11, 16, 33, 0.72);
+    --dock-recording-bg: rgba(11, 16, 33, 0.82);
+    --input-bg: rgba(2, 6, 23, 0.45);
+    --card-bg: rgba(2, 6, 23, 0.55);
+    --card-head-bg: rgba(17, 24, 39, 0.85);
+    --bubble-bg: rgba(17, 24, 39, 0.7);
+    --btn-text: #020617;
+    --logo-icon: #020617;
+    --orb-opacity: 0.5;
+    --grid-opacity: 0.05;
+    --noise-opacity: 0.03;
     --radius: 14px;
     --radius-lg: 20px;
     --radius-sm: 10px;
     --font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  }
+  .light-theme {
+    --bg: #f8fafc;
+    --surface: rgba(255, 255, 255, 0.78);
+    --surface-2: #f1f5f9;
+    --surface-3: #e2e8f0;
+    --border: rgba(148, 163, 184, 0.28);
+    --border-strong: rgba(148, 163, 184, 0.38);
+    --text: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+    --accent: #0ea5e9;
+    --accent-2: #0284c7;
+    --accent-soft: rgba(14, 165, 233, 0.12);
+    --accent-glow: rgba(14, 165, 233, 0.2);
+    --emerald: #10b981;
+    --emerald-soft: rgba(16, 185, 129, 0.12);
+    --blue: #3b82f6;
+    --blue-soft: rgba(59, 130, 246, 0.12);
+    --violet: #8b5cf6;
+    --violet-soft: rgba(139, 92, 246, 0.12);
+    --violet-glow: rgba(139, 92, 246, 0.15);
+    --red: #ef4444;
+    --red-soft: rgba(239, 68, 68, 0.12);
+    --nav-bg: rgba(255, 255, 255, 0.78);
+    --dock-bg: rgba(255, 255, 255, 0.82);
+    --dock-recording-bg: rgba(255, 255, 255, 0.92);
+    --input-bg: rgba(241, 245, 249, 0.85);
+    --card-bg: rgba(255, 255, 255, 0.65);
+    --card-head-bg: rgba(241, 245, 249, 0.9);
+    --bubble-bg: rgba(255, 255, 255, 0.78);
+    --btn-text: #ffffff;
+    --logo-icon: #ffffff;
+    --orb-opacity: 0.22;
+    --grid-opacity: 0.08;
+    --noise-opacity: 0.015;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -51,7 +102,7 @@
   }
   .bg-orb::before, .bg-orb::after {
     content: ''; position: absolute; border-radius: 50%;
-    filter: blur(110px); opacity: 0.5;
+    filter: blur(110px); opacity: var(--orb-opacity);
     animation: orb-float 20s ease-in-out infinite alternate;
   }
   .bg-orb::before {
@@ -72,14 +123,14 @@
   .bg-grid {
     position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background-image:
-      linear-gradient(rgba(148,163,184,0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(148,163,184,0.05) 1px, transparent 1px);
+      linear-gradient(rgba(148,163,184,var(--grid-opacity)) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,var(--grid-opacity)) 1px, transparent 1px);
     background-size: 56px 56px;
     mask-image: radial-gradient(ellipse 90% 70% at 50% 50%, black 30%, transparent 80%);
     -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 50%, black 30%, transparent 80%);
   }
   .bg-noise {
-    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.03;
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: var(--noise-opacity);
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
@@ -88,7 +139,7 @@
     position: fixed; top: 0; left: 0; right: 0; z-index: 50;
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 24px; height: 64px;
-    background: rgba(2, 6, 23, 0.78);
+    background: var(--nav-bg);
     backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border);
   }
@@ -114,6 +165,16 @@
   }
   .nav-link:hover { color: var(--text); background: rgba(148,163,184,0.08); }
   .nav-link.active { color: var(--text); background: var(--surface-2); border: 1px solid var(--border); }
+  .theme-toggle {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--surface-2);
+    color: var(--text-secondary); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    margin-left: 4px;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+  }
+  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .theme-toggle svg { width: 16px; height: 16px; }
 
   /* ── App layout ── */
   .app {
@@ -170,7 +231,7 @@
   }
   .welcome-hint {
     font-family: var(--mono); font-size: 12px; color: var(--text-secondary);
-    background: rgba(11, 16, 33, 0.6); border: 1px solid var(--border);
+    background: var(--surface); border: 1px solid var(--border);
     padding: 8px 16px; border-radius: 999px;
     transition: border-color 0.2s, color 0.2s;
     cursor: default;
@@ -200,7 +261,7 @@
 
   /* Transcript bubble */
   .msg-transcript {
-    background: rgba(17, 24, 39, 0.7); border: 1px solid var(--border);
+    background: var(--bubble-bg); border: 1px solid var(--border);
     border-radius: var(--radius) var(--radius) var(--radius) 4px;
     padding: 14px 18px; margin-bottom: 14px;
     backdrop-filter: blur(8px);
@@ -222,7 +283,7 @@
 
   /* Empty result */
   .msg-empty-result {
-    background: rgba(11, 16, 33, 0.6); border: 1px solid var(--border);
+    background: var(--surface); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 16px 18px;
     font-size: 13.5px; color: var(--text-muted); font-style: italic;
     text-align: center;
@@ -231,14 +292,14 @@
   /* File card */
   .file-card {
     border: 1px solid var(--border); border-radius: var(--radius);
-    overflow: hidden; background: rgba(2, 6, 23, 0.55);
+    overflow: hidden; background: var(--card-bg);
     margin-bottom: 12px;
     transition: border-color 0.3s, box-shadow 0.3s;
   }
-  .file-card:hover { border-color: rgba(56,189,248,0.2); box-shadow: 0 0 30px rgba(56,189,248,0.04); }
+  .file-card:hover { border-color: rgba(56,189,248,0.2); box-shadow: 0 0 30px rgba(56,189,248,0.06); }
   .file-head {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 14px; background: rgba(17, 24, 39, 0.85);
+    padding: 10px 14px; background: var(--card-head-bg);
     border-bottom: 1px solid var(--border);
   }
   .file-name {
@@ -304,15 +365,15 @@
     z-index: 40;
     display: flex; align-items: center; gap: 10px;
     padding: 7px 14px 7px 8px;
-    background: rgba(11, 16, 33, 0.72);
+    background: var(--dock-bg);
     backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border);
     border-radius: 999px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
     transition: border-color 0.25s, background 0.25s;
   }
   .input-dock:hover { border-color: rgba(56,189,248,0.18); }
-  .input-dock.recording { border-color: rgba(56,189,248,0.3); background: rgba(11, 16, 33, 0.82); }
+  .input-dock.recording { border-color: rgba(56,189,248,0.3); background: var(--dock-recording-bg); }
   #micBtn {
     width: 34px; height: 34px; border-radius: 50%;
     border: none; background: transparent;
@@ -361,7 +422,7 @@
   .msg-processing {
     display: flex; align-items: center; gap: 12px;
     padding: 14px 20px; margin-bottom: 16px;
-    background: rgba(17, 24, 39, 0.7); border: 1px solid var(--border);
+    background: var(--bubble-bg); border: 1px solid var(--border);
     border-radius: var(--radius) var(--radius) var(--radius) 4px;
     backdrop-filter: blur(8px); animation: msg-in 0.3s ease;
   }
@@ -390,7 +451,7 @@
   /* ── Text input ── */
   .text-input {
     flex: 1; min-width: 0;
-    background: rgba(2, 6, 23, 0.45); border: 1px solid var(--border);
+    background: var(--input-bg); border: 1px solid var(--border);
     border-radius: 999px;
     padding: 10px 16px; font-family: var(--font);
     font-size: 13px; color: var(--text); outline: none;
@@ -411,7 +472,7 @@
   /* ── Deploy visualization ── */
   .deploy-viz {
     margin-top: 12px; padding: 14px 18px;
-    background: rgba(17, 24, 39, 0.6); border: 1px solid var(--border);
+    background: var(--surface); border: 1px solid var(--border);
     border-radius: var(--radius);
   }
   .deploy-viz-title {
@@ -432,7 +493,7 @@
   .export-btn {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 6px 12px; margin-top: 10px;
-    background: rgba(11, 16, 33, 0.5); border: 1px solid var(--border);
+    background: var(--surface); border: 1px solid var(--border);
     border-radius: 999px; cursor: pointer;
     font-size: 11px; color: var(--text-muted); font-family: var(--font);
     transition: color 0.15s, border-color 0.15s, background 0.15s;
@@ -465,7 +526,7 @@
   <a href="/" class="nav-brand">
     <div class="nav-logo">
       <svg viewBox="0 0 24 24" fill="none">
-        <path d="M7 4v16M12 8v8M17 6v12" stroke="#020617" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M7 4v16M12 8v8M17 6v12" stroke="var(--logo-icon)" stroke-width="2.5" stroke-linecap="round"/>
       </svg>
     </div>
     <span class="nav-name">VoicOps</span>
@@ -474,6 +535,10 @@
     <a href="/" class="nav-link">Home</a>
     <a href="/generate" class="nav-link active">Generate</a>
     <a href="/analytics" class="nav-link">Analytics</a>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
   </div>
 </nav>
 
@@ -528,6 +593,28 @@
   const clearHistoryBtn = document.getElementById('clearHistory');
   const textInput = document.getElementById('textInput');
   const textSendBtn = document.getElementById('textSendBtn');
+  const themeToggle = document.getElementById('themeToggle');
+
+  // ── Theme toggle ──
+  const THEME_KEY = 'voicops_theme';
+  function applyTheme(theme) {
+    if (theme === 'light') { document.body.classList.add('light-theme'); }
+    else { document.body.classList.remove('light-theme'); }
+    updateThemeIcon(theme);
+  }
+  function updateThemeIcon(theme) {
+    if (!themeToggle) return;
+    themeToggle.querySelector('.moon').style.display = theme === 'light' ? 'none' : 'block';
+    themeToggle.querySelector('.sun').style.display = theme === 'light' ? 'block' : 'none';
+  }
+  function toggleTheme() {
+    var isLight = document.body.classList.toggle('light-theme');
+    var theme = isLight ? 'light' : 'dark';
+    try { localStorage.setItem(THEME_KEY, theme); } catch(e) {}
+    updateThemeIcon(theme);
+  }
+  try { applyTheme(localStorage.getItem(THEME_KEY) || 'dark'); } catch(e) { applyTheme('dark'); }
+  if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
 
   let mediaRecorder, audioChunks = [];
   let audioCtx, analyser, dataArray, stream;

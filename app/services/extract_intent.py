@@ -2,7 +2,7 @@
 import json
 import logging
 from groq import APIConnectionError, RateLimitError, APIStatusError
-from app.services.api_service import client
+from app.services.api_service import groq_client
 
 logger = logging.getLogger(__name__)
 
@@ -284,7 +284,7 @@ Set "deploy_cloud" to true only when the user explicitly mentions cloud deployme
 
 async def extract_intent(transcript: str) -> dict:
     try:
-        response = await client.chat.completions.create(
+        response = await groq_client.chat.completions.create(
             model="openai/gpt-oss-120b",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},

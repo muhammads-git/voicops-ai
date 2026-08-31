@@ -1,7 +1,7 @@
 # --- self_healing: validates generated code and auto-fixes errors via LLM ---
 
 import logging
-from app.services.api_service import client
+from app.services.api_service import groq_client
 from app.services.validator import validate_dockerfile, validate_terraform
 
 logger = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ async def heal_dockerfile(content: str) -> dict:
                 content=current_content,
                 errors="\n".join(f"- {e}" for e in errors),
             )
-            response = await client.chat.completions.create(
+            response = await groq_client.chat.completions.create(
                 model="openai/gpt-oss-120b",
                 messages=[
                     {"role": "system", "content": "You are a Dockerfile expert. Fix the given Dockerfile based on the validation errors. Return ONLY the fixed Dockerfile."},
@@ -140,7 +140,7 @@ async def heal_terraform(content: str) -> dict:
                 content=current_content,
                 errors="\n".join(f"- {e}" for e in errors),
             )
-            response = await client.chat.completions.create(
+            response = await groq_client.chat.completions.create(
                 model="openai/gpt-oss-120b",
                 messages=[
                     {"role": "system", "content": "You are a Terraform expert. Fix the given main.tf based on the validation errors. Return ONLY the fixed Terraform code."},

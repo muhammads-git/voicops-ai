@@ -4,6 +4,7 @@ import asyncio
 import json
 import logging
 import shutil
+import subprocess
 import tempfile
 import os
 from pathlib import Path
@@ -43,38 +44,61 @@ async def validate_dockerfile(content: str) -> dict:
         logger.info("hadolint not installed — skipping Dockerfile validation")
         return {"valid": None, "errors": [], "tool_available": False}
 
-    try:
-        proc = await asyncio.create_subprocess_exec(
-            hadolint, "--format", "json", "-",
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await asyncio.wait_for(
-            proc.communicate(input=content.encode()),
+    def _run_hadolint():
+        proc = subprocess.run(
+            [hadolint, "--format", "json", "-"],
+            input=content.encode(),
+            capture_output=True,
             timeout=SUBPROCESS_TIMEOUT,
         )
+        return proc.stdout, proc.stderr, proc.returncode
+
+    try:
+        stdout, stderr, returncode = await asyncio.wait_for(
+            asyncio.to_thread(_run_hadolint),
+            timeout=SUBPROCESS_TIMEOUT + 2,
+        )
+
+        if stderr:
+            stderr_text = stderr.decode(errors="replace").strip()
+            if stderr_text:
+                logger.warning(f"hadolint stderr: {stderr_text}")
+
+        if returncode != 0 and not stdout:
+            # hadolint exited with an error but produced no JSON output
+            err_text = stderr.decode(errors="replace").strip() or "hadolint exited with errors"
+            return {"valid": None, "errors": [err_text], "tool_available": True}
 
         if not stdout:
             # hadolint outputs nothing = no errors
             return {"valid": True, "errors": [], "tool_available": True}
 
-        results = json.loads(stdout.decode())
+        try:
+            results = json.loads(stdout.decode())
+        except json.JSONDecodeError as e:
+            logger.error(f"hadolint returned invalid JSON: {e}")
+            return {"valid": None, "errors": ["hadolint returned invalid JSON"], "tool_available": True}
+
         if not results:
             return {"valid": True, "errors": [], "tool_available": True}
 
         errors = [
             f"Line {r.get('line', '?')}: {r.get('message', 'unknown issue')} ({r.get('code', '')})"
             for r in results
+            if r.get("message") or r.get("code")
         ]
         return {"valid": False, "errors": errors, "tool_available": True}
 
     except asyncio.TimeoutError:
         logger.warning("hadolint timed out after 15s")
         return {"valid": None, "errors": ["Validation timed out"], "tool_available": True}
+    except subprocess.TimeoutExpired:
+        logger.warning("hadolint subprocess timed out after 15s")
+        return {"valid": None, "errors": ["Validation timed out"], "tool_available": True}
     except Exception as e:
-        logger.error(f"hadolint error: {e}")
-        return {"valid": None, "errors": [str(e)], "tool_available": True}
+        err_msg = str(e).strip() or f"{type(e).__name__}: {getattr(e, 'args', '')}"
+        logger.error(f"hadolint error: {err_msg}")
+        return {"valid": None, "errors": [err_msg], "tool_available": True}
 
 
 async def validate_terraform(content: str) -> dict:
@@ -90,38 +114,49 @@ async def validate_terraform(content: str) -> dict:
         return {"valid": None, "errors": [], "tool_available": False}
 
     tmpdir = tempfile.mkdtemp(prefix="voicops_tf_")
-    try:
-        # Write main.tf to temp directory
+
+    def _run_terraform():
         tf_path = os.path.join(tmpdir, "main.tf")
         with open(tf_path, "w", encoding="utf-8") as f:
             f.write(content)
 
         # terraform init -backend=false (required before validate)
-        proc = await asyncio.create_subprocess_exec(
-            terraform, "init", "-backend=false", "-no-color",
+        init_proc = subprocess.run(
+            [terraform, "init", "-backend=false", "-no-color"],
             cwd=tmpdir,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+            capture_output=True,
+            timeout=60,
         )
-        await asyncio.wait_for(proc.communicate(), timeout=60)  # init can take longer (plugin download)
-
-        if proc.returncode != 0:
-            logger.warning("terraform init failed — skipping validation")
-            return {"valid": None, "errors": ["terraform init failed"], "tool_available": True}
+        if init_proc.returncode != 0:
+            stderr_text = init_proc.stderr.decode(errors="replace").strip()
+            logger.warning(f"terraform init failed: {stderr_text}")
+            return None, stderr_text or "terraform init failed", init_proc.returncode
 
         # terraform validate -json
-        proc = await asyncio.create_subprocess_exec(
-            terraform, "validate", "-json", "-no-color",
+        validate_proc = subprocess.run(
+            [terraform, "validate", "-json", "-no-color"],
             cwd=tmpdir,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await asyncio.wait_for(
-            proc.communicate(),
+            capture_output=True,
             timeout=SUBPROCESS_TIMEOUT,
         )
+        return validate_proc.stdout, validate_proc.stderr, validate_proc.returncode
 
-        result = json.loads(stdout.decode())
+    try:
+        stdout, stderr, returncode = await asyncio.wait_for(
+            asyncio.to_thread(_run_terraform),
+            timeout=SUBPROCESS_TIMEOUT + 65,
+        )
+
+        if returncode != 0 and not stdout:
+            err_text = stderr.decode(errors="replace").strip() or "terraform validate failed"
+            return {"valid": None, "errors": [err_text], "tool_available": True}
+
+        try:
+            result = json.loads(stdout.decode())
+        except json.JSONDecodeError as e:
+            logger.error(f"terraform validate returned invalid JSON: {e}")
+            return {"valid": None, "errors": ["terraform validate returned invalid JSON"], "tool_available": True}
+
         if result.get("valid", False):
             return {"valid": True, "errors": [], "tool_available": True}
 
@@ -132,16 +167,21 @@ async def validate_terraform(content: str) -> dict:
             msg = summary
             if detail:
                 msg += f": {detail}"
-            errors.append(msg)
+            if msg.strip():
+                errors.append(msg)
 
         return {"valid": False, "errors": errors, "tool_available": True}
 
     except asyncio.TimeoutError:
-        logger.warning("terraform validate timed out after 15s")
+        logger.warning("terraform validate timed out")
+        return {"valid": None, "errors": ["Validation timed out"], "tool_available": True}
+    except subprocess.TimeoutExpired:
+        logger.warning("terraform validate subprocess timed out")
         return {"valid": None, "errors": ["Validation timed out"], "tool_available": True}
     except Exception as e:
-        logger.error(f"terraform validate error: {e}")
-        return {"valid": None, "errors": [str(e)], "tool_available": True}
+        err_msg = str(e).strip() or f"{type(e).__name__}: {getattr(e, 'args', '')}"
+        logger.error(f"terraform validate error: {err_msg}")
+        return {"valid": None, "errors": [err_msg], "tool_available": True}
     finally:
         # Clean up temp directory
         try:

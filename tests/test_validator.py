@@ -1,7 +1,8 @@
 # tests/test_validator.py — tests for Dockerfile, Terraform, and Compose validation
 
 import pytest
-from unittest.mock import patch, AsyncMock
+import tempfile
+from unittest.mock import patch, MagicMock
 from app.services.validator import validate_dockerfile, validate_terraform, validate_compose
 
 
@@ -18,11 +19,13 @@ class TestValidateDockerfile:
     @pytest.mark.asyncio
     async def test_hadolint_passes(self):
         """When hadolint returns no output, Dockerfile is valid."""
-        mock_proc = AsyncMock()
-        mock_proc.communicate = AsyncMock(return_value=(b"", b""))
+        mock_proc = MagicMock()
+        mock_proc.stdout = b""
+        mock_proc.stderr = b""
+        mock_proc.returncode = 0
 
         with patch("app.services.validator.find_tool", return_value="/usr/bin/hadolint"), \
-             patch("asyncio.create_subprocess_exec", return_value=mock_proc):
+             patch("subprocess.run", return_value=mock_proc):
             result = await validate_dockerfile("FROM node:20-alpine\n")
 
         assert result["valid"] is True
@@ -36,11 +39,13 @@ class TestValidateDockerfile:
         hadolint_output = json.dumps([
             {"line": 1, "code": "DL3007", "message": "Using latest is prone to errors"},
         ]).encode()
-        mock_proc = AsyncMock()
-        mock_proc.communicate = AsyncMock(return_value=(hadolint_output, b""))
+        mock_proc = MagicMock()
+        mock_proc.stdout = hadolint_output
+        mock_proc.stderr = b""
+        mock_proc.returncode = 1
 
         with patch("app.services.validator.find_tool", return_value="/usr/bin/hadolint"), \
-             patch("asyncio.create_subprocess_exec", return_value=mock_proc):
+             patch("subprocess.run", return_value=mock_proc):
             result = await validate_dockerfile("FROM node:latest\n")
 
         assert result["valid"] is False
@@ -51,11 +56,13 @@ class TestValidateDockerfile:
     @pytest.mark.asyncio
     async def test_hadolint_empty_json_means_valid(self):
         """Empty JSON array = no errors."""
-        mock_proc = AsyncMock()
-        mock_proc.communicate = AsyncMock(return_value=(b"[]", b""))
+        mock_proc = MagicMock()
+        mock_proc.stdout = b"[]"
+        mock_proc.stderr = b""
+        mock_proc.returncode = 0
 
         with patch("app.services.validator.find_tool", return_value="/usr/bin/hadolint"), \
-             patch("asyncio.create_subprocess_exec", return_value=mock_proc):
+             patch("subprocess.run", return_value=mock_proc):
             result = await validate_dockerfile("FROM node:20\n")
 
         assert result["valid"] is True
@@ -75,16 +82,20 @@ class TestValidateTerraform:
         """When terraform validate returns valid JSON."""
         import json
         tf_valid_output = json.dumps({"valid": True, "diagnostics": []}).encode()
+        tmpdir = tempfile.mkdtemp(prefix="voicops_test_")
 
-        mock_init_proc = AsyncMock()
-        mock_init_proc.communicate = AsyncMock(return_value=(b"", b""))
+        mock_init_proc = MagicMock()
+        mock_init_proc.stdout = b""
+        mock_init_proc.stderr = b""
         mock_init_proc.returncode = 0
 
-        mock_validate_proc = AsyncMock()
-        mock_validate_proc.communicate = AsyncMock(return_value=(tf_valid_output, b""))
+        mock_validate_proc = MagicMock()
+        mock_validate_proc.stdout = tf_valid_output
+        mock_validate_proc.stderr = b""
+        mock_validate_proc.returncode = 0
 
         call_count = 0
-        async def mock_create(*args, **kwargs):
+        def mock_run(*args, **kwargs):
             nonlocal call_count
             call_count += 1
             if call_count == 1:
@@ -92,9 +103,8 @@ class TestValidateTerraform:
             return mock_validate_proc
 
         with patch("app.services.validator.find_tool", return_value="/usr/bin/terraform"), \
-             patch("asyncio.create_subprocess_exec", side_effect=mock_create), \
-             patch("tempfile.mkdtemp", return_value="/tmp/voicops_test"), \
-             patch("builtins.open"), \
+             patch("subprocess.run", side_effect=mock_run), \
+             patch("tempfile.mkdtemp", return_value=tmpdir), \
              patch("shutil.rmtree"):
             result = await validate_terraform('provider "alicloud" {}')
 
@@ -111,16 +121,20 @@ class TestValidateTerraform:
                 {"summary": "Missing required argument", "detail": "region is required"},
             ],
         }).encode()
+        tmpdir = tempfile.mkdtemp(prefix="voicops_test_")
 
-        mock_init_proc = AsyncMock()
-        mock_init_proc.communicate = AsyncMock(return_value=(b"", b""))
+        mock_init_proc = MagicMock()
+        mock_init_proc.stdout = b""
+        mock_init_proc.stderr = b""
         mock_init_proc.returncode = 0
 
-        mock_validate_proc = AsyncMock()
-        mock_validate_proc.communicate = AsyncMock(return_value=(tf_invalid_output, b""))
+        mock_validate_proc = MagicMock()
+        mock_validate_proc.stdout = tf_invalid_output
+        mock_validate_proc.stderr = b""
+        mock_validate_proc.returncode = 0
 
         call_count = 0
-        async def mock_create(*args, **kwargs):
+        def mock_run(*args, **kwargs):
             nonlocal call_count
             call_count += 1
             if call_count == 1:
@@ -128,9 +142,8 @@ class TestValidateTerraform:
             return mock_validate_proc
 
         with patch("app.services.validator.find_tool", return_value="/usr/bin/terraform"), \
-             patch("asyncio.create_subprocess_exec", side_effect=mock_create), \
-             patch("tempfile.mkdtemp", return_value="/tmp/voicops_test"), \
-             patch("builtins.open"), \
+             patch("subprocess.run", side_effect=mock_run), \
+             patch("tempfile.mkdtemp", return_value=tmpdir), \
              patch("shutil.rmtree"):
             result = await validate_terraform("bad terraform")
 

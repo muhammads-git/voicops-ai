@@ -941,9 +941,12 @@
         hH += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
         hH += 'Validation Pipeline</div>';
         healFiles.forEach(function(f) {
-          var errs = f.v.original_errors || [];
-          var healed = errs.length > 0 && f.v.valid === true;
-          var unhealed = errs.length > 0 && f.v.valid !== true;
+          var rawErrs = f.v.original_errors || [];
+          var errs = rawErrs.filter(function(e) { return e && e.trim().length > 0; });
+          var hadIssues = errs.length > 0;
+          var couldNotValidate = f.v.valid === null || f.v.valid === undefined;
+          var healed = hadIssues && f.v.valid === true;
+          var unhealed = hadIssues && f.v.valid === false;
           hH += '<div class="heal-step">';
           if (healed) {
             hH += '<span class="heal-ico fix">\u21BB</span>';
@@ -951,17 +954,23 @@
           } else if (unhealed) {
             hH += '<span class="heal-ico fix" style="background:var(--red-soft);color:var(--red)">\u26A0</span>';
             hH += '<span class="heal-txt"><strong>' + f.name + '</strong> &mdash; ' + errs.length + ' issue' + (errs.length !== 1 ? 's' : '') + ' found, could not fully fix</span>';
+          } else if (couldNotValidate) {
+            hH += '<span class="heal-ico fix" style="background:var(--red-soft);color:var(--red)">\u26A0</span>';
+            hH += '<span class="heal-txt"><strong>' + f.name + '</strong> &mdash; validation could not be completed</span>';
           } else {
             hH += '<span class="heal-ico lint">\u2713</span>';
             hH += '<span class="heal-txt"><strong>' + f.name + '</strong> &mdash; passed validation, no issues found</span>';
           }
           hH += '<span class="heal-tool">' + f.tool + '</span>';
           hH += '</div>';
-          if (errs.length > 0) {
+          if (hadIssues) {
             hH += '<div class="heal-errors">';
             errs.forEach(function(e) { hH += '<div class="heal-err">' + escapeHtml(e) + '</div>'; });
             if (healed) hH += '<div class="heal-fix-note">All issues resolved by AI self-healing</div>';
+            else if (couldNotValidate) hH += '<div class="heal-err" style="color:var(--text-secondary)">The validator encountered an error. The file is still provided for export.</div>';
             hH += '</div>';
+          } else if (couldNotValidate) {
+            hH += '<div class="heal-errors"><div class="heal-err" style="color:var(--text-secondary)">Validator did not return details. The file is still provided for export.</div></div>';
           }
         });
         healEl.innerHTML = hH;

@@ -322,6 +322,12 @@
   .file-badge.fail { background: var(--red-soft); color: var(--red); }
   .file-badge.healed { background: var(--accent-soft); color: var(--accent); }
   .file-badge.na { background: var(--surface-3); color: var(--text-dim); }
+  .file-badge.valid { background: var(--emerald-soft); color: var(--emerald); }
+  .file-badge.invalid { background: var(--red-soft); color: var(--red); }
+  .file-badge.unknown {
+    background: var(--surface-3); color: var(--text-dim);
+    border: 1px dashed var(--border-strong);
+  }
   .file-actions { display: flex; gap: 2px; }
   .file-actions button {
     background: transparent; border: none; color: var(--text-dim);
@@ -801,6 +807,21 @@
     return escapeHtml(t).split('\n').map(function(l){if(/^\s*#/.test(l))return'<span class="tok-cmt">'+l+'</span>';var bm=l.match(/^(\s*)(resource|variable|provider|data|output|module|locals|terraform)(\s.*)?$/);if(bm&&kws.indexOf(bm[2])>=0)return bm[1]+'<span class="tok-kw">'+bm[2]+'</span><span class="tok-plain">'+(bm[3]||'')+'</span>';var am=l.match(/^(\s*)([\w.]+)(\s*=\s*)(.*)?$/);if(am){var v=am[4]||'';var vc=/"/.test(v)?'tok-str':'tok-plain';return am[1]+'<span class="tok-key">'+am[2]+'</span>'+am[3]+'<span class="'+vc+'">'+v+'</span>';}return'<span class="tok-plain">'+l+'</span>';}).map(function(l){return'<span class="line">'+l+'</span>';}).join('');
   }
 
+  // ── Validation badge (4 states: valid / invalid / unchecked / hidden) ──
+  function validationBadgeHtml(validation) {
+    if (!validation || !('tool_available' in validation)) return '';
+    if (validation.valid === true) {
+      return '<span class="file-badge valid">\u2713 Validated</span>';
+    }
+    if (validation.valid === false) {
+      var errors = validation.errors || [];
+      var tip = errors.map(escapeHtml).join('\n');
+      return '<span class="file-badge invalid" title="' + tip + '">' + errors.length + ' issue' + (errors.length !== 1 ? 's' : '') + '</span>';
+    }
+    // valid === null or undefined — validator could not complete
+    return '<span class="file-badge unknown">Unchecked</span>';
+  }
+
   // ── Render message group (transcript bubble + file cards) ──
   function renderMessage(msg, animate) {
     if (animate === undefined) animate = true;
@@ -840,17 +861,11 @@
 
     if (fd.length > 0) {
       fd.forEach(function(f, i) {
-        var badge = '';
-        if (f.v) {
-          if (!f.v.tool_available) badge = '<span class="file-badge na">N/A</span>';
-          else if (f.v.healing_count > 0 && f.v.valid) badge = '<span class="file-badge healed">healed ' + f.v.healing_count + 'x</span>';
-          else if (f.v.valid) badge = '<span class="file-badge pass">valid</span>';
-          else badge = '<span class="file-badge fail">invalid</span>';
-        }
+        var vBadge = validationBadgeHtml(f.v);
         var hlFn = f.h === 'df' ? highlightDockerfile : f.h === 'yaml' ? highlightYaml : highlightHCL;
         var card = document.createElement('div');
         card.className = 'file-card';
-        card.innerHTML = '<div class="file-head"><div class="file-name"><span class="file-icon ' + f.c + '">' + f.l + '</span>' + f.n + badge + '</div><div class="file-actions"><button class="copy-btn" title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button><button class="dl-btn" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button></div></div><div class="file-body">' + hlFn(f.x) + '</div>';
+        card.innerHTML = '<div class="file-head"><div class="file-name"><span class="file-icon ' + f.c + '">' + f.l + '</span>' + f.n + vBadge + '</div><div class="file-actions"><button class="copy-btn" title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button><button class="dl-btn" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button></div></div><div class="file-body">' + hlFn(f.x) + '</div>';
         card.querySelector('.copy-btn').addEventListener('click', function(e) {
           var btn = e.currentTarget;
           navigator.clipboard.writeText(f.x);

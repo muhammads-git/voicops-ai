@@ -50,11 +50,12 @@ class TestHealDockerfile:
 
     @pytest.mark.asyncio
     async def test_tool_unavailable_returns_immediately(self):
-        """If hadolint not installed, skip healing."""
+        """If hadolint not installed, skip healing — valid=None propagates."""
         with patch("app.services.self_healing.validate_dockerfile", new_callable=AsyncMock) as mock_validate:
-            mock_validate.return_value = {"valid": True, "errors": [], "tool_available": False}
+            mock_validate.return_value = {"valid": None, "errors": [], "tool_available": False}
             result = await heal_dockerfile("FROM node:20\n")
 
+        assert result["valid"] is None
         assert result["tool_available"] is False
         assert result["healing_count"] == 0
 
@@ -146,8 +147,10 @@ class TestHealTerraform:
 
     @pytest.mark.asyncio
     async def test_tool_unavailable_returns_immediately(self):
+        """If terraform not installed, skip healing — valid=None propagates."""
         with patch("app.services.self_healing.validate_terraform", new_callable=AsyncMock) as mock_validate:
-            mock_validate.return_value = {"valid": True, "errors": [], "tool_available": False}
+            mock_validate.return_value = {"valid": None, "errors": [], "tool_available": False}
             result = await heal_terraform('provider "alicloud" {}')
 
+        assert result["valid"] is None
         assert result["tool_available"] is False

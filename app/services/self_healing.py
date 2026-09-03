@@ -45,7 +45,8 @@ def strip_code_fences(text: str) -> str:
 async def heal_dockerfile(content: str) -> dict:
     """
     Validates a Dockerfile and attempts to heal it if invalid.
-    Returns {"content": str, "valid": bool, "healing_count": int, "tool_available": bool}.
+    Returns {"content": str, "valid": bool|None, "healing_count": int, "tool_available": bool}.
+    valid=None when the validator could not complete (tool missing/timeout/crash).
     """
     result = await validate_dockerfile(content)
 
@@ -116,7 +117,8 @@ async def heal_dockerfile(content: str) -> dict:
 async def heal_terraform(content: str) -> dict:
     """
     Validates a Terraform main.tf and attempts to heal it if invalid.
-    Returns {"content": str, "valid": bool, "healing_count": int, "tool_available": bool}.
+    Returns {"content": str, "valid": bool|None, "healing_count": int, "tool_available": bool}.
+    valid=None when the validator could not complete (tool missing/timeout/crash).
     """
     result = await validate_terraform(content)
 

@@ -8,10 +8,10 @@ from app.services.validator import validate_dockerfile, validate_terraform
 class TestValidateDockerfile:
     @pytest.mark.asyncio
     async def test_hadolint_not_installed(self):
-        """When hadolint is missing, graceful degradation."""
+        """When hadolint is missing, valid=None (unchecked) — never displayed as a pass."""
         with patch("app.services.validator.shutil.which", return_value=None):
             result = await validate_dockerfile("FROM node:20\n")
-        assert result["valid"] is True
+        assert result["valid"] is None
         assert result["tool_available"] is False
         assert result["errors"] == []
 
@@ -64,10 +64,10 @@ class TestValidateDockerfile:
 class TestValidateTerraform:
     @pytest.mark.asyncio
     async def test_terraform_not_installed(self):
-        """When terraform is missing, graceful degradation."""
+        """When terraform is missing, valid=None (unchecked) — never displayed as a pass."""
         with patch("app.services.validator.shutil.which", return_value=None):
             result = await validate_terraform('provider "alicloud" {}')
-        assert result["valid"] is True
+        assert result["valid"] is None
         assert result["tool_available"] is False
 
     @pytest.mark.asyncio

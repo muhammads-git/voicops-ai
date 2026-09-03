@@ -111,7 +111,7 @@ async def _process_intent(transcript: str, start_time: float):
             }
         except Exception as e:
             # Healing should never crash the request
-            validation["dockerfile"] = {"valid": True, "healing_count": 0, "tool_available": False}
+            validation["dockerfile"] = {"valid": None, "healing_count": 0, "tool_available": False}
 
     if terraform_content:
         try:
@@ -124,7 +124,7 @@ async def _process_intent(transcript: str, start_time: float):
                 "tool_available": healed["tool_available"],
             }
         except Exception as e:
-            validation["terraform"] = {"valid": True, "healing_count": 0, "tool_available": False}
+            validation["terraform"] = {"valid": None, "healing_count": 0, "tool_available": False}
 
     # --- Telemetry logging ---
     elapsed = time.time() - start_time

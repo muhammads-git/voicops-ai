@@ -53,7 +53,7 @@ class TestGenerateTextEndpoint:
         with patch("app.services.extract_intent.groq_client") as mock_groq, \
              patch("app.services.self_healing.validate_dockerfile", new_callable=AsyncMock) as mock_validate:
             mock_groq.chat.completions.create = AsyncMock(return_value=mock_intent_response)
-            mock_validate.return_value = {"valid": True, "errors": [], "tool_available": False}
+            mock_validate.return_value = {"valid": None, "errors": [], "tool_available": False}
 
             resp = await client.post("/generate-text", data={"text": "I need nodejs with redis"})
 
@@ -79,7 +79,7 @@ class TestGenerateTextEndpoint:
         with patch("app.services.extract_intent.groq_client") as mock_groq, \
              patch("app.services.self_healing.validate_dockerfile", new_callable=AsyncMock) as mock_validate:
             mock_groq.chat.completions.create = AsyncMock(return_value=mock_intent_response)
-            mock_validate.return_value = {"valid": True, "errors": [], "tool_available": False}
+            mock_validate.return_value = {"valid": None, "errors": [], "tool_available": False}
 
             resp = await client.post("/generate-text", data={"text": "deploy fastapi to the cloud"})
 

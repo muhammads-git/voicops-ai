@@ -41,10 +41,6 @@ class TestNormalizeTranscript:
     def test_fixes_mango_to_mongodb(self):
         assert "mongodb" in normalize_transcript("store in mango")
 
-    def test_fixes_docker_mishearings(self):
-        assert "docker" in normalize_transcript("dock her container")
-        assert "docker" in normalize_transcript("darker compose")
-
     def test_no_change_for_clean_text(self):
         text = "i need a simple web server"
         assert normalize_transcript(text) == text

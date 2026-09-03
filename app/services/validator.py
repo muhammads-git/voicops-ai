@@ -6,11 +6,26 @@ import logging
 import shutil
 import tempfile
 import os
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 # 15-second timeout for all subprocess calls
 SUBPROCESS_TIMEOUT = 15
+
+# Project-local bin directory for validator tools (see install_validators.ps1)
+BIN_DIR = Path(__file__).resolve().parent.parent.parent / "bin"
+
+
+def find_tool(name: str) -> str | None:
+    """Locates a tool binary — checks system PATH first, then project bin/ directory."""
+    path = shutil.which(name)
+    if path:
+        return path
+    local_path = BIN_DIR / (name + ".exe" if os.name == "nt" else name)
+    if local_path.is_file():
+        return str(local_path)
+    return None
 
 
 async def validate_dockerfile(content: str) -> dict:
@@ -20,13 +35,14 @@ async def validate_dockerfile(content: str) -> dict:
     valid=None when validation could not complete (tool missing, timeout, crash).
     If hadolint is not installed, returns tool_available=False (graceful degradation).
     """
-    if not shutil.which("hadolint"):
+    hadolint = find_tool("hadolint")
+    if not hadolint:
         logger.info("hadolint not installed — skipping Dockerfile validation")
         return {"valid": None, "errors": [], "tool_available": False}
 
     try:
         proc = await asyncio.create_subprocess_exec(
-            "hadolint", "--format", "json", "-",
+            hadolint, "--format", "json", "-",
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
@@ -65,7 +81,8 @@ async def validate_terraform(content: str) -> dict:
     valid=None when validation could not complete (tool missing, timeout, crash).
     If terraform is not installed, returns tool_available=False (graceful degradation).
     """
-    if not shutil.which("terraform"):
+    terraform = find_tool("terraform")
+    if not terraform:
         logger.info("terraform not installed — skipping Terraform validation")
         return {"valid": None, "errors": [], "tool_available": False}
 
@@ -78,7 +95,7 @@ async def validate_terraform(content: str) -> dict:
 
         # terraform init -backend=false (required before validate)
         proc = await asyncio.create_subprocess_exec(
-            "terraform", "init", "-backend=false", "-no-color",
+            terraform, "init", "-backend=false", "-no-color",
             cwd=tmpdir,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
@@ -91,7 +108,7 @@ async def validate_terraform(content: str) -> dict:
 
         # terraform validate -json
         proc = await asyncio.create_subprocess_exec(
-            "terraform", "validate", "-json", "-no-color",
+            terraform, "validate", "-json", "-no-color",
             cwd=tmpdir,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,

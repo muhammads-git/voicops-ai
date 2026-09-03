@@ -428,14 +428,38 @@
     animation: none;
     transition: transform 0.06s ease-out, opacity 0.06s ease-out;
   }
+  /* ── Validation pipeline card (self-healing display) ── */
   .healing-info {
-    display: flex; align-items: center; gap: 8px;
-    margin-top: 10px; padding: 10px 16px;
-    background: var(--accent-soft); border: 1px solid rgba(56,189,248,0.18);
-    border-radius: var(--radius-sm);
-    font-size: 12px; color: var(--accent); line-height: 1.5;
+    margin-top: 12px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--card-bg);
+    overflow: hidden;
   }
-  .healing-info strong { font-weight: 600; }
+  .heal-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px; background: var(--card-head-bg);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono); font-size: 11.5px; font-weight: 500; color: var(--text-secondary);
+  }
+  .heal-step {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 16px; font-size: 12.5px; color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+  }
+  .heal-step:last-child { border-bottom: none; }
+  .heal-ico {
+    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; font-family: var(--mono);
+  }
+  .heal-ico.lint { background: var(--emerald-soft); color: var(--emerald); }
+  .heal-ico.fix  { background: var(--accent-soft); color: var(--accent); }
+  .heal-txt { flex: 1; line-height: 1.5; }
+  .heal-txt strong { font-weight: 600; color: var(--text); }
+  .heal-tool {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+    color: var(--text-dim); background: var(--surface-3);
+    padding: 2px 8px; border-radius: 6px; white-space: nowrap;
+  }
   .status-text {
     font-size: 12px; font-weight: 500; color: var(--text-muted);
     transition: color 0.25s; white-space: nowrap;
@@ -882,13 +906,35 @@
       });
       // Deploy visualization
       renderDeployViz(group, msg);
-      // Self-healing highlight — the VoicOps differentiator
+      // Self-healing pipeline card — the VoicOps differentiator
       var vData = msg.validation || {};
-      var totalHealing = (vData.dockerfile ? (vData.dockerfile.healing_count || 0) : 0) + (vData.terraform ? (vData.terraform.healing_count || 0) : 0);
-      if (totalHealing > 0) {
+      var healFiles = [];
+      if (vData.dockerfile && vData.dockerfile.tool_available) {
+        healFiles.push({name:'Dockerfile', v:vData.dockerfile, tool:'hadolint'});
+      }
+      if (vData.terraform && vData.terraform.tool_available) {
+        healFiles.push({name:'main.tf', v:vData.terraform, tool:'terraform validate'});
+      }
+      if (healFiles.length > 0) {
         var healEl = document.createElement('div');
         healEl.className = 'healing-info';
-        healEl.innerHTML = '<strong>Auto-healed</strong> ' + totalHealing + ' validation issue' + (totalHealing > 1 ? 's' : '') + ' \u2014 configs were checked by linters and corrected by AI before delivery.';
+        var hH = '<div class="heal-head">';
+        hH += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+        hH += 'Validation Pipeline</div>';
+        healFiles.forEach(function(f) {
+          var healed = f.v.healing_count > 0;
+          hH += '<div class="heal-step">';
+          if (healed) {
+            hH += '<span class="heal-ico fix">\u21BB</span>';
+            hH += '<span class="heal-txt"><strong>' + f.name + '</strong> &mdash; ' + f.v.healing_count + ' issue' + (f.v.healing_count !== 1 ? 's' : '') + ' auto-fixed by AI</span>';
+          } else {
+            hH += '<span class="heal-ico lint">\u2713</span>';
+            hH += '<span class="heal-txt"><strong>' + f.name + '</strong> &mdash; passed validation, no issues found</span>';
+          }
+          hH += '<span class="heal-tool">' + f.tool + '</span>';
+          hH += '</div>';
+        });
+        healEl.innerHTML = hH;
         group.appendChild(healEl);
       }
       // Export button

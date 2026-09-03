@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Validator tool binaries (downloaded via install_validators.ps1)
+bin/

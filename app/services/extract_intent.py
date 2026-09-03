@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 #  unrecognized word). It was removed — see reasoning below the
 #  fuzzy_resolve function.
 
-SUPPORTED_SERVICES = {"postgresql", "mysql", "mongodb", "redis", "fastapi", "nodejs", "docker", "flask", "django"}
+SUPPORTED_SERVICES = {"postgresql", "mysql", "mongodb", "redis", "fastapi", "nodejs", "flask", "django"}
 
 KNOWN_CORRECTIONS = {
     # nodejs
@@ -66,11 +66,6 @@ KNOWN_CORRECTIONS = {
     "fastappy": "fastapi",
     "past api": "fastapi",
     "fast a pi": "fastapi",
-    # docker
-    "dock her": "docker",
-    "dock er": "docker",
-    "darker": "docker",
-    "doc her": "docker",
     # flask
     "flash": "flask",
     "fl ask": "flask",
@@ -109,7 +104,6 @@ PHONETIC_ALIASES = {
     "redis":      ["reddis", "redish", "radish", "reddish", "redissh", "rediss", "redi"],
     "nodejs":     ["node", "nodejs", "nodjs", "notjs", "nojs", "nods"],
     "fastapi":    ["fastapi", "fastapy", "fastappy", "pastapi"],
-    "docker":     ["dock", "doker", "docer", "dokka"],
     "flask":      ["flash", "flaask"],
     "django":     ["jango", "jengo", "jangle", "djengo"],
 }
@@ -276,7 +270,7 @@ Also detect if the user wants cloud deployment (Alibaba Cloud, cloud hosting, de
 Respond only with JSON in this exact shape:
 {"services": ["postgresql", "redis"], "unsupported": ["kafka"], "deploy_cloud": true}
 
-Only use these values in "services": postgresql, mysql, mongodb, redis, fastapi, nodejs, flask, django, docker.
+Only use these values in "services": postgresql, mysql, mongodb, redis, fastapi, nodejs, flask, django.
 Any service mentioned that is NOT in that list goes into "unsupported" instead, using the user's own word for it.
 If there are no unsupported services, return an empty list for "unsupported".
 Set "deploy_cloud" to true only when the user explicitly mentions cloud deployment, Alibaba Cloud, cloud infrastructure, "on the cloud", or "deploy to the cloud". Otherwise set it to false."""

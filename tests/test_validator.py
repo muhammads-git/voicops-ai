@@ -9,7 +9,7 @@ class TestValidateDockerfile:
     @pytest.mark.asyncio
     async def test_hadolint_not_installed(self):
         """When hadolint is missing, valid=None (unchecked) — never displayed as a pass."""
-        with patch("app.services.validator.shutil.which", return_value=None):
+        with patch("app.services.validator.find_tool", return_value=None):
             result = await validate_dockerfile("FROM node:20\n")
         assert result["valid"] is None
         assert result["tool_available"] is False
@@ -21,7 +21,7 @@ class TestValidateDockerfile:
         mock_proc = AsyncMock()
         mock_proc.communicate = AsyncMock(return_value=(b"", b""))
 
-        with patch("app.services.validator.shutil.which", return_value="/usr/bin/hadolint"), \
+        with patch("app.services.validator.find_tool", return_value="/usr/bin/hadolint"), \
              patch("asyncio.create_subprocess_exec", return_value=mock_proc):
             result = await validate_dockerfile("FROM node:20-alpine\n")
 
@@ -39,7 +39,7 @@ class TestValidateDockerfile:
         mock_proc = AsyncMock()
         mock_proc.communicate = AsyncMock(return_value=(hadolint_output, b""))
 
-        with patch("app.services.validator.shutil.which", return_value="/usr/bin/hadolint"), \
+        with patch("app.services.validator.find_tool", return_value="/usr/bin/hadolint"), \
              patch("asyncio.create_subprocess_exec", return_value=mock_proc):
             result = await validate_dockerfile("FROM node:latest\n")
 
@@ -54,7 +54,7 @@ class TestValidateDockerfile:
         mock_proc = AsyncMock()
         mock_proc.communicate = AsyncMock(return_value=(b"[]", b""))
 
-        with patch("app.services.validator.shutil.which", return_value="/usr/bin/hadolint"), \
+        with patch("app.services.validator.find_tool", return_value="/usr/bin/hadolint"), \
              patch("asyncio.create_subprocess_exec", return_value=mock_proc):
             result = await validate_dockerfile("FROM node:20\n")
 
@@ -65,7 +65,7 @@ class TestValidateTerraform:
     @pytest.mark.asyncio
     async def test_terraform_not_installed(self):
         """When terraform is missing, valid=None (unchecked) — never displayed as a pass."""
-        with patch("app.services.validator.shutil.which", return_value=None):
+        with patch("app.services.validator.find_tool", return_value=None):
             result = await validate_terraform('provider "alicloud" {}')
         assert result["valid"] is None
         assert result["tool_available"] is False
@@ -91,7 +91,7 @@ class TestValidateTerraform:
                 return mock_init_proc
             return mock_validate_proc
 
-        with patch("app.services.validator.shutil.which", return_value="/usr/bin/terraform"), \
+        with patch("app.services.validator.find_tool", return_value="/usr/bin/terraform"), \
              patch("asyncio.create_subprocess_exec", side_effect=mock_create), \
              patch("tempfile.mkdtemp", return_value="/tmp/voicops_test"), \
              patch("builtins.open"), \
@@ -127,7 +127,7 @@ class TestValidateTerraform:
                 return mock_init_proc
             return mock_validate_proc
 
-        with patch("app.services.validator.shutil.which", return_value="/usr/bin/terraform"), \
+        with patch("app.services.validator.find_tool", return_value="/usr/bin/terraform"), \
              patch("asyncio.create_subprocess_exec", side_effect=mock_create), \
              patch("tempfile.mkdtemp", return_value="/tmp/voicops_test"), \
              patch("builtins.open"), \

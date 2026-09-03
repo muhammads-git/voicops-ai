@@ -385,7 +385,15 @@
   #micBtn svg { width: 18px; height: 18px; }
   #micBtn:hover { background: var(--accent-soft); }
   #micBtn:active { transform: scale(0.95); }
-  #micBtn.recording { background: var(--accent-soft); }
+  #micBtn.recording {
+    background: var(--accent-soft);
+    box-shadow: 0 0 0 0 var(--accent-glow);
+    animation: mic-pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes mic-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+    50% { box-shadow: 0 0 0 10px transparent; }
+  }
   .wave-wrap {
     width: 52px; height: 18px;
     display: flex; align-items: center; justify-content: center; gap: 3px;
@@ -410,6 +418,18 @@
     0%, 100% { transform: scaleY(0.5); opacity: 0.4; }
     50% { transform: scaleY(1.2); opacity: 1; }
   }
+  .input-dock.recording .wave-bar.audio-level {
+    animation: none;
+    transition: transform 0.06s ease-out, opacity 0.06s ease-out;
+  }
+  .healing-info {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 10px; padding: 10px 16px;
+    background: var(--accent-soft); border: 1px solid rgba(56,189,248,0.18);
+    border-radius: var(--radius-sm);
+    font-size: 12px; color: var(--accent); line-height: 1.5;
+  }
+  .healing-info strong { font-weight: 600; }
   .status-text {
     font-size: 12px; font-weight: 500; color: var(--text-muted);
     transition: color 0.25s; white-space: nowrap;
@@ -500,6 +520,21 @@
   }
   .export-btn:hover { color: var(--accent); border-color: rgba(56,189,248,0.25); background: var(--accent-soft); }
   .export-btn svg { width: 12px; height: 12px; }
+
+  /* ── Pipeline stages ── */
+  .pipeline-stage {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; color: var(--text-secondary);
+    transition: opacity 0.3s ease;
+  }
+  .pipeline-stage .stage-icon {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0;
+  }
+  .pipeline-stage .stage-icon.active { background: var(--accent-soft); color: var(--accent); }
+  .pipeline-stage .stage-icon.done { background: var(--emerald-soft); color: var(--emerald); }
+  .pipeline-stage .stage-icon.pending { background: var(--surface-3); color: var(--text-dim); }
 
   /* ── Responsive ── */
   @media (max-width: 640px) {
@@ -619,6 +654,9 @@
   let mediaRecorder, audioChunks = [];
   let audioCtx, analyser, dataArray, stream;
   let spaceHeld = false;
+  let isRecording = false;
+  let recordingStartTime = 0;
+  let animFrameId = null;
   const STORAGE_KEY = 'voicops_chat_history';
   let chatHistory = [];
 
@@ -829,6 +867,15 @@
       });
       // Deploy visualization
       renderDeployViz(group, msg);
+      // Self-healing highlight — the VoicOps differentiator
+      var vData = msg.validation || {};
+      var totalHealing = (vData.dockerfile ? (vData.dockerfile.healing_count || 0) : 0) + (vData.terraform ? (vData.terraform.healing_count || 0) : 0);
+      if (totalHealing > 0) {
+        var healEl = document.createElement('div');
+        healEl.className = 'healing-info';
+        healEl.innerHTML = '<strong>Auto-healed</strong> ' + totalHealing + ' validation issue' + (totalHealing > 1 ? 's' : '') + ' \u2014 configs were checked by linters and corrected by AI before delivery.';
+        group.appendChild(healEl);
+      }
       // Export button
       var expBtn = document.createElement('button');
       expBtn.className = 'export-btn';
@@ -866,6 +913,9 @@
 
   // ── Recording ──
   async function startRecording(){
+    if(isRecording) return;          // prevent double-start (race condition guard)
+    isRecording = true;
+    recordingStartTime = Date.now();
     try{
       stream=await navigator.mediaDevices.getUserMedia({audio:true});
       audioCtx=new(window.AudioContext||window.webkitAudioContext)();
@@ -874,38 +924,80 @@
       dataArray=new Uint8Array(analyser.frequencyBinCount);
       src.connect(analyser);
       mediaRecorder=new MediaRecorder(stream); audioChunks=[];
-      mediaRecorder.ondataavailable=function(e){audioChunks.push(e.data);};
+      mediaRecorder.ondataavailable=function(e){if(e.data&&e.data.size>0)audioChunks.push(e.data);};
       mediaRecorder.onstop=async function(){
+        var elapsed=Date.now()-recordingStartTime;
+        isRecording=false;
+        // Stop the live audio-level visualizer
+        if(animFrameId){cancelAnimationFrame(animFrameId);animFrameId=null;}
+        document.querySelectorAll('.wave-bar').forEach(function(b){b.classList.remove('audio-level');b.style.transform='';b.style.opacity='';});
+        // Min-duration guard: catches quick taps that produce <500ms of audio
+        if(elapsed<500||audioChunks.length===0){setStatus('Too short \u2014 hold longer','error');micBtn.classList.remove('recording','processing');return;}
         var wb=new Blob(audioChunks,{type:'audio/webm'});
         stream.getTracks().forEach(function(t){t.stop();});
-        audioCtx.close();
+        try{audioCtx.close();}catch(e){}
         var r=await webmToWav(wb);
         if(r.duration<0.5){setStatus('Too short \u2014 hold longer','error');micBtn.classList.remove('recording','processing');return;}
         await sendAudio(r.blob);
       };
       mediaRecorder.start();
       micBtn.classList.add('recording'); setStatus('Listening...','recording');
-    }catch(e){setStatus('Microphone access denied','error');}
+      // Live audio-level visualizer — drives wave bars from real mic input
+      var bars=document.querySelectorAll('.wave-bar');
+      (function drawLevel(){
+        if(!isRecording)return;
+        analyser.getByteFrequencyData(dataArray);
+        var sum=0;for(var i=0;i<dataArray.length;i++)sum+=dataArray[i];
+        var avg=sum/dataArray.length/255;
+        bars.forEach(function(bar,idx){
+          bar.classList.add('audio-level');
+          var scale=0.3+avg*(1.2+idx*0.15);
+          bar.style.transform='scaleY('+Math.min(scale,1.5).toFixed(2)+')';
+          bar.style.opacity=(0.3+avg*0.7).toFixed(2);
+        });
+        animFrameId=requestAnimationFrame(drawLevel);
+      })();
+    }catch(e){isRecording=false;setStatus('Microphone access denied','error');}
   }
   function stopRecording(){
-    if(mediaRecorder&&mediaRecorder.state!=='inactive')mediaRecorder.stop();
-    micBtn.classList.remove('recording'); micBtn.classList.add('processing'); setStatus('Processing...','');
+    if(!isRecording)return;                       // already stopped or never started
+    micBtn.classList.remove('recording');
+    micBtn.classList.add('processing');
+    setStatus('Processing...','');
+    // Min-time guard: if user released before 500ms, warn immediately
+    var elapsed=Date.now()-recordingStartTime;
+    if(elapsed<500){
+      isRecording=false;
+      if(mediaRecorder&&mediaRecorder.state!=='inactive'){try{mediaRecorder.stop();}catch(e){}}
+      setStatus('Too short \u2014 hold longer','error');
+      return;
+    }
+    if(mediaRecorder&&mediaRecorder.state!=='inactive'){
+      try{mediaRecorder.stop();}catch(e){isRecording=false;}
+    }else{isRecording=false;}
   }
 
   async function sendAudio(audioBlob){
     var fd=new FormData(); fd.append('audio',audioBlob,'command.wav');
-    showProcessing('Transcribing & generating configs...');
-    setStatus('Generating configs...','');
+    // Pipeline stage visualization — cycle through steps while server processes
+    showProcessing('Transcribing voice...');
+    setStatus('Transcribing...','');
+    var stageIdx=0;
+    var stages=['Transcribing voice...','Extracting intent...','Generating & validating configs...'];
+    var stageTimers=[];
+    stageTimers.push(setTimeout(function(){stageIdx=1;showProcessing(stages[1]);setStatus('Extracting intent...','');},1200));
+    stageTimers.push(setTimeout(function(){stageIdx=2;showProcessing(stages[2]);setStatus('Generating configs...','');},3200));
     try{
       var res=await fetch('/generate-config',{method:'POST',body:fd});
+      stageTimers.forEach(clearTimeout);
       hideProcessing();
       micBtn.classList.remove('processing');
       if(!res.ok){
-        if(res.status===502||res.status===503){setStatus('Speech service busy \u2014 try typing instead','error');showTextInput();return;}
+        if(res.status===502||res.status===503){setStatus('Service busy \u2014 try typing below','error');showTextInput();textInput.setAttribute('placeholder','Type what you said...');return;}
         throw new Error('Failed ('+res.status+')');
       }
       var data=await res.json();
-      var msg={timestamp:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}),transcript:data.transcript||'',corrected_transcript:data.corrected_transcript||'',unsupported:data.unsupported||[],dockerfile:data.dockerfile||null,docker_compose:data.docker_compose||null,terraform:data.terraform||null,validation:data.validation||{},time_taken:data.time_taken||null};
+      var msg={timestamp:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}),transcript:data.transcript||'',corrected_transcript:data.corrected_transcript||'',unsupported:data.unsupported||[],dockerfile:data.dockerfile||null,docker_compose:data.docker_compose||null,terraform:data.terraform||null,validation:data.validation||{},healing_stats:data.healing_stats||{},time_taken:data.time_taken||null};
       if(data.dockerfile||data.docker_compose||data.terraform){
         var parts=[];
         if(data.dockerfile||data.docker_compose)parts.push('Docker');
@@ -915,7 +1007,7 @@
       }else{setStatus('No service name detected');}
       welcomeEl.style.display='none';
       chatHistory.push(msg); renderMessage(msg); saveHistory();
-    }catch(e){hideProcessing();micBtn.classList.remove('processing');setStatus(e.message,'error');showTextInput();}
+    }catch(e){stageTimers.forEach(clearTimeout);hideProcessing();micBtn.classList.remove('processing');setStatus(e.message,'error');showTextInput();textInput.setAttribute('placeholder','Type what you said...');}
   }
 
   // ── Text input send ──
@@ -961,11 +1053,11 @@
     }
   });
 
-  micBtn.addEventListener('mousedown',startRecording);
-  micBtn.addEventListener('mouseup',stopRecording);
-  micBtn.addEventListener('mouseleave',function(){if(mediaRecorder&&mediaRecorder.state==='recording')stopRecording();});
-  micBtn.addEventListener('touchstart',function(e){e.preventDefault();startRecording();});
-  micBtn.addEventListener('touchend',function(e){e.preventDefault();stopRecording();});
+  micBtn.addEventListener('mousedown',function(){if(!isRecording)startRecording();});
+  micBtn.addEventListener('mouseup',function(){if(isRecording)stopRecording();});
+  micBtn.addEventListener('mouseleave',function(){if(isRecording)stopRecording();});
+  micBtn.addEventListener('touchstart',function(e){e.preventDefault();if(!isRecording)startRecording();});
+  micBtn.addEventListener('touchend',function(e){e.preventDefault();if(isRecording)stopRecording();});
 
   // ── Demo mode (auto-trigger from URL param) ──
   var demoPrompt = new URLSearchParams(window.location.search).get('demo');

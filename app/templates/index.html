@@ -6,7 +6,7 @@
 <title>VoicOps — Voice-to-Infrastructure</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23020617'/%3E%3Cpath d='M7 4v16M12 8v8M17 6v12' stroke='%2338bdf8' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23020617'/%3E%3Crect x='4' y='14' width='16' height='5.5' rx='1.5' fill='%2338bdf8'/%3E%3Crect x='6' y='8.5' width='12' height='5' rx='1.5' fill='%2338bdf8'/%3E%3Crect x='8' y='3.5' width='8' height='4.5' rx='1.5' fill='%2338bdf8'/%3E%3C/svg%3E">
 <style>
   :root {
     /* ── Core palette (dark default) ── */
@@ -39,9 +39,9 @@
     --input-bg: rgba(2, 6, 23, 0.55);
     --btn-text: #020617;
     --logo-icon: #020617;
-    --orb-opacity: 0.55;
-    --grid-opacity: 0.06;
-    --noise-opacity: 0.035;
+    --orb-opacity: 0.5;
+    --grid-opacity: 0.05;
+    --noise-opacity: 0.03;
     --radius: 14px;
     --radius-lg: 20px;
     --radius-sm: 10px;
@@ -77,9 +77,9 @@
     --input-bg: rgba(241, 245, 249, 0.85);
     --btn-text: #ffffff;
     --logo-icon: #ffffff;
-    --orb-opacity: 0.24;
-    --grid-opacity: 0.1;
-    --noise-opacity: 0.02;
+    --orb-opacity: 0.22;
+    --grid-opacity: 0.08;
+    --noise-opacity: 0.015;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -95,23 +95,23 @@
   }
   .bg-orb::before, .bg-orb::after {
     content: ''; position: absolute; border-radius: 50%;
-    filter: blur(100px); opacity: var(--orb-opacity);
-    animation: orb-float 18s ease-in-out infinite alternate;
+    filter: blur(110px); opacity: var(--orb-opacity);
+    animation: orb-float 20s ease-in-out infinite alternate;
   }
   .bg-orb::before {
-    width: 700px; height: 700px;
-    background: radial-gradient(circle, rgba(56,189,248,0.22) 0%, transparent 70%);
-    top: -220px; left: -180px;
+    width: 650px; height: 650px;
+    background: radial-gradient(circle, rgba(56,189,248,0.2) 0%, transparent 70%);
+    top: -200px; right: -180px;
   }
   .bg-orb::after {
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(167,139,250,0.18) 0%, transparent 70%);
-    bottom: -180px; right: -150px;
-    animation-delay: -8s;
+    width: 550px; height: 550px;
+    background: radial-gradient(circle, rgba(167,139,250,0.16) 0%, transparent 70%);
+    bottom: -160px; left: -120px;
+    animation-delay: -9s;
   }
   @keyframes orb-float {
     0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(40px, 30px) scale(1.08); }
+    100% { transform: translate(-30px, 20px) scale(1.06); }
   }
   .bg-grid {
     position: fixed; inset: 0; z-index: 0; pointer-events: none;
@@ -119,8 +119,8 @@
       linear-gradient(rgba(148,163,184,var(--grid-opacity)) 1px, transparent 1px),
       linear-gradient(90deg, rgba(148,163,184,var(--grid-opacity)) 1px, transparent 1px);
     background-size: 56px 56px;
-    mask-image: radial-gradient(ellipse 90% 70% at 50% 20%, black 30%, transparent 80%);
-    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 20%, black 30%, transparent 80%);
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 50%, black 30%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 50%, black 30%, transparent 80%);
   }
   .bg-noise {
     position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: var(--noise-opacity);
@@ -439,11 +439,26 @@
   /* ── Footer ── */
   .footer {
     position: relative; z-index: 1;
-    text-align: center; padding: 36px 24px;
+    text-align: center; padding: 40px 24px 36px;
     border-top: 1px solid var(--border);
   }
+  .footer-brand {
+    display: inline-flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .footer-logo {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--violet));
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .footer-logo svg { width: 15px; height: 15px; }
+  .footer-brand-name {
+    font-weight: 600; font-size: 15px; letter-spacing: -0.02em;
+    color: var(--text);
+  }
   .footer-text { font-size: 12px; color: var(--text-dim); }
-  .footer-links { display: flex; justify-content: center; gap: 20px; margin-top: 8px; }
+  .footer-links { display: flex; justify-content: center; gap: 20px; margin-top: 10px; }
   .footer-links a { font-size: 12px; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
   .footer-links a:hover { color: var(--accent); }
 
@@ -558,7 +573,9 @@
   <a href="/" class="nav-brand">
     <div class="nav-logo">
       <svg viewBox="0 0 24 24" fill="none">
-        <path d="M7 4v16M12 8v8M17 6v12" stroke="var(--logo-icon)" stroke-width="2.5" stroke-linecap="round"/>
+        <rect x="4" y="14" width="16" height="5.5" rx="1.5" fill="var(--logo-icon)"/>
+        <rect x="6" y="8.5" width="12" height="5" rx="1.5" fill="var(--logo-icon)"/>
+        <rect x="8" y="3.5" width="8" height="4.5" rx="1.5" fill="var(--logo-icon)"/>
       </svg>
     </div>
     <span class="nav-name">VoicOps</span>
@@ -794,8 +811,19 @@
 
 <!-- Footer -->
 <div class="footer">
-  <div class="footer-text">VoicOps — Voice-to-Infrastructure for the AI Alibaba Hackathon</div>
+  <div class="footer-brand">
+    <div class="footer-logo">
+      <svg viewBox="0 0 24 24" fill="none">
+        <rect x="4" y="14" width="16" height="5.5" rx="1.5" fill="var(--logo-icon)"/>
+        <rect x="6" y="8.5" width="12" height="5" rx="1.5" fill="var(--logo-icon)"/>
+        <rect x="8" y="3.5" width="8" height="4.5" rx="1.5" fill="var(--logo-icon)"/>
+      </svg>
+    </div>
+    <span class="footer-brand-name">VoicOps</span>
+  </div>
+  <div class="footer-text">Voice-to-Infrastructure for the AI Alibaba Hackathon</div>
   <div class="footer-links">
+    <a href="/">Home</a>
     <a href="/generate">Generate</a>
     <a href="/analytics">Analytics</a>
     <a href="/health">Health</a>

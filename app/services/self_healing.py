@@ -2,7 +2,7 @@
 
 import logging
 from app.services.api_service import groq_client
-from app.services.validator import validate_dockerfile, validate_terraform
+from app.services.validator import validate_dockerfile, validate_terraform, validate_compose
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,16 @@ Validation errors:
 {errors}
 
 Fix the Terraform file. Respond ONLY with the corrected main.tf content, no explanations or markdown fences."""
+
+HEALING_PROMPT_COMPOSE = """You generated a docker-compose.yml that failed validation.
+Original docker-compose.yml:
+```
+{content}
+```
+Validation errors:
+{errors}
+
+Fix the docker-compose.yml. Respond ONLY with the corrected docker-compose.yml content, no explanations or markdown fences."""
 
 
 def strip_code_fences(text: str) -> str:
@@ -57,10 +67,12 @@ async def heal_dockerfile(content: str) -> dict:
             "valid": result["valid"],
             "healing_count": 0,
             "tool_available": result["tool_available"],
+            "original_errors": [],
         }
 
     current_content = content
-    errors = result["errors"]
+    initial_errors = result["errors"]
+    errors = initial_errors
 
     for attempt in range(1, MAX_HEALING_ATTEMPTS + 1):
         logger.info(f"Dockerfile healing attempt {attempt}/{MAX_HEALING_ATTEMPTS}")
@@ -90,6 +102,7 @@ async def heal_dockerfile(content: str) -> dict:
                     "valid": True,
                     "healing_count": attempt,
                     "tool_available": True,
+                    "original_errors": initial_errors,
                 }
 
             errors = result["errors"]
@@ -102,6 +115,7 @@ async def heal_dockerfile(content: str) -> dict:
                 "valid": False,
                 "healing_count": attempt - 1,
                 "tool_available": True,
+                "original_errors": initial_errors,
             }
 
     # Exhausted all attempts
@@ -111,6 +125,7 @@ async def heal_dockerfile(content: str) -> dict:
         "valid": False,
         "healing_count": MAX_HEALING_ATTEMPTS,
         "tool_available": True,
+        "original_errors": initial_errors,
     }
 
 
@@ -129,10 +144,12 @@ async def heal_terraform(content: str) -> dict:
             "valid": result["valid"],
             "healing_count": 0,
             "tool_available": result["tool_available"],
+            "original_errors": [],
         }
 
     current_content = content
-    errors = result["errors"]
+    initial_errors = result["errors"]
+    errors = initial_errors
 
     for attempt in range(1, MAX_HEALING_ATTEMPTS + 1):
         logger.info(f"Terraform healing attempt {attempt}/{MAX_HEALING_ATTEMPTS}")
@@ -162,6 +179,7 @@ async def heal_terraform(content: str) -> dict:
                     "valid": True,
                     "healing_count": attempt,
                     "tool_available": True,
+                    "original_errors": initial_errors,
                 }
 
             errors = result["errors"]
@@ -173,6 +191,7 @@ async def heal_terraform(content: str) -> dict:
                 "valid": False,
                 "healing_count": attempt - 1,
                 "tool_available": True,
+                "original_errors": initial_errors,
             }
 
     # Exhausted all attempts
@@ -182,4 +201,80 @@ async def heal_terraform(content: str) -> dict:
         "valid": False,
         "healing_count": MAX_HEALING_ATTEMPTS,
         "tool_available": True,
+        "original_errors": initial_errors,
+    }
+
+
+async def heal_compose(content: str) -> dict:
+    """
+    Validates a docker-compose.yml and attempts to heal it if invalid.
+    Returns {"content": str, "valid": bool|None, "healing_count": int, "tool_available": bool, "original_errors": list}.
+    """
+    result = await validate_compose(content)
+
+    # If valid or tool not available, return immediately
+    if result["valid"] or not result["tool_available"]:
+        return {
+            "content": content,
+            "valid": result["valid"],
+            "healing_count": 0,
+            "tool_available": result["tool_available"],
+            "original_errors": [],
+        }
+
+    current_content = content
+    initial_errors = result["errors"]
+    errors = initial_errors
+
+    for attempt in range(1, MAX_HEALING_ATTEMPTS + 1):
+        logger.info(f"Compose healing attempt {attempt}/{MAX_HEALING_ATTEMPTS}")
+
+        try:
+            prompt = HEALING_PROMPT_COMPOSE.format(
+                content=current_content,
+                errors="\n".join(f"- {e}" for e in errors),
+            )
+            response = await groq_client.chat.completions.create(
+                model="openai/gpt-oss-120b",
+                messages=[
+                    {"role": "system", "content": "You are a Docker Compose expert. Fix the given docker-compose.yml based on the validation errors. Return ONLY the corrected docker-compose.yml."},
+                    {"role": "user", "content": prompt},
+                ],
+            )
+            fixed_content = strip_code_fences(response.choices[0].message.content)
+
+            # Re-validate the fixed content
+            result = await validate_compose(fixed_content)
+            current_content = fixed_content
+
+            if result["valid"]:
+                logger.info(f"Compose healed successfully on attempt {attempt}")
+                return {
+                    "content": current_content,
+                    "valid": True,
+                    "healing_count": attempt,
+                    "tool_available": True,
+                    "original_errors": initial_errors,
+                }
+
+            errors = result["errors"]
+
+        except Exception as e:
+            logger.error(f"Compose healing attempt {attempt} failed: {e}")
+            return {
+                "content": current_content,
+                "valid": False,
+                "healing_count": attempt - 1,
+                "tool_available": True,
+                "original_errors": initial_errors,
+            }
+
+    # Exhausted all attempts
+    logger.warning(f"Compose still invalid after {MAX_HEALING_ATTEMPTS} healing attempts")
+    return {
+        "content": current_content,
+        "valid": False,
+        "healing_count": MAX_HEALING_ATTEMPTS,
+        "tool_available": True,
+        "original_errors": initial_errors,
     }

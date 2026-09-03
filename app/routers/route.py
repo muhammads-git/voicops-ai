@@ -9,7 +9,7 @@ from sqlalchemy import select, func
 from app.services.extract_intent import extract_intent,normalize_transcript,build_corrected_transcript
 from app.services.build_configs import build_config
 from app.services.build_terraform import build_terraform
-from app.services.self_healing import heal_dockerfile, heal_terraform
+from app.services.self_healing import heal_dockerfile, heal_terraform, heal_compose
 from app.services.circuit_breaker import CircuitBreaker, CircuitOpenError
 from app.database import async_session
 from app.models import RequestLog
@@ -97,7 +97,7 @@ async def _process_intent(transcript: str, start_time: float):
 
     # Step 5: Validate and self-heal generated configs
     validation = {}
-    healing_stats = {"dockerfile": 0, "terraform": 0}
+    healing_stats = {"dockerfile": 0, "compose": 0, "terraform": 0}
 
     if configs["dockerfile"]:
         try:
@@ -108,10 +108,25 @@ async def _process_intent(transcript: str, start_time: float):
                 "valid": healed["valid"],
                 "healing_count": healed["healing_count"],
                 "tool_available": healed["tool_available"],
+                "original_errors": healed.get("original_errors", []),
             }
         except Exception as e:
             # Healing should never crash the request
-            validation["dockerfile"] = {"valid": None, "healing_count": 0, "tool_available": False}
+            validation["dockerfile"] = {"valid": None, "healing_count": 0, "tool_available": False, "original_errors": []}
+
+    if configs["docker_compose"]:
+        try:
+            healed = await heal_compose(configs["docker_compose"])
+            configs["docker_compose"] = healed["content"]  # Use healed version
+            healing_stats["compose"] = healed["healing_count"]
+            validation["compose"] = {
+                "valid": healed["valid"],
+                "healing_count": healed["healing_count"],
+                "tool_available": healed["tool_available"],
+                "original_errors": healed.get("original_errors", []),
+            }
+        except Exception as e:
+            validation["compose"] = {"valid": None, "healing_count": 0, "tool_available": False, "original_errors": []}
 
     if terraform_content:
         try:
@@ -122,9 +137,10 @@ async def _process_intent(transcript: str, start_time: float):
                 "valid": healed["valid"],
                 "healing_count": healed["healing_count"],
                 "tool_available": healed["tool_available"],
+                "original_errors": healed.get("original_errors", []),
             }
         except Exception as e:
-            validation["terraform"] = {"valid": None, "healing_count": 0, "tool_available": False}
+            validation["terraform"] = {"valid": None, "healing_count": 0, "tool_available": False, "original_errors": []}
 
     # --- Telemetry logging ---
     elapsed = time.time() - start_time

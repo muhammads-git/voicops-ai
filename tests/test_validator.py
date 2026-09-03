@@ -1,8 +1,8 @@
-# tests/test_validator.py — tests for Dockerfile and Terraform validation
+# tests/test_validator.py — tests for Dockerfile, Terraform, and Compose validation
 
 import pytest
 from unittest.mock import patch, AsyncMock
-from app.services.validator import validate_dockerfile, validate_terraform
+from app.services.validator import validate_dockerfile, validate_terraform, validate_compose
 
 
 class TestValidateDockerfile:
@@ -138,3 +138,57 @@ class TestValidateTerraform:
         assert result["tool_available"] is True
         assert len(result["errors"]) == 1
         assert "Missing required argument" in result["errors"][0]
+
+
+class TestValidateCompose:
+    @pytest.mark.asyncio
+    async def test_valid_compose_passes(self):
+        """Valid YAML passes yamllint with no errors."""
+        valid_yaml = (
+            "version: '3.8'\n"
+            "services:\n"
+            "  app:\n"
+            "    build: .\n"
+            "    ports:\n"
+            '      - "3000:3000"\n'
+        )
+        result = await validate_compose(valid_yaml)
+        assert result["valid"] is True
+        assert result["tool_available"] is True
+        assert result["errors"] == []
+
+    @pytest.mark.asyncio
+    async def test_duplicate_keys_detected(self):
+        """yamllint catches duplicate keys in YAML."""
+        bad_yaml = (
+            "version: '3.8'\n"
+            "services:\n"
+            "  app:\n"
+            "    build: .\n"
+            "    build: ./other\n"
+        )
+        result = await validate_compose(bad_yaml)
+        assert result["valid"] is False
+        assert result["tool_available"] is True
+        assert len(result["errors"]) >= 1
+        assert any("duplication" in e.lower() or "duplicate" in e.lower() for e in result["errors"])
+
+    @pytest.mark.asyncio
+    async def test_bad_indentation_detected(self):
+        """yamllint catches bad indentation."""
+        bad_yaml = (
+            "version: '3.8'\n"
+            "services:\n"
+            "  app:\n"
+            "     build: .\n"
+        )
+        result = await validate_compose(bad_yaml)
+        assert result["valid"] is False
+        assert result["tool_available"] is True
+        assert len(result["errors"]) >= 1
+
+    @pytest.mark.asyncio
+    async def test_tool_always_available(self):
+        """yamllint is pip-installed, so tool_available is always True."""
+        result = await validate_compose("version: '3.8'\n")
+        assert result["tool_available"] is True

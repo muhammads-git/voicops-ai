@@ -8,6 +8,9 @@ import tempfile
 import os
 from pathlib import Path
 
+from yamllint import linter as yamllint_linter
+from yamllint.config import YamlLintConfig
+
 logger = logging.getLogger(__name__)
 
 # 15-second timeout for all subprocess calls
@@ -146,3 +149,48 @@ async def validate_terraform(content: str) -> dict:
             _shutil.rmtree(tmpdir, ignore_errors=True)
         except Exception:
             pass
+
+
+# yamllint config: checks structural validity without style nitpicks
+_YAMLLINT_CONFIG = YamlLintConfig(
+    "rules:\n"
+    "  key-duplicates: enable\n"
+    "  empty-values: enable\n"
+    "  indentation: {spaces: 2, indent-sequences: whatever}\n"
+    "  new-line-at-end-of-file: disable\n"
+    "  trailing-spaces: disable\n"
+    "  document-start: disable\n"
+    "  line-length: disable\n"
+    "  truthy: disable\n"
+    "  comments: disable\n"
+    "  comments-indentation: disable\n"
+    "  brackets: disable\n"
+    "  colons: disable\n"
+    "  commas: disable\n"
+    "  empty-lines: disable\n"
+    "  hyphens: disable\n"
+    "  anchors: disable\n"
+    "  octal-values: disable\n"
+)
+
+
+async def validate_compose(content: str) -> dict:
+    """
+    Validates a docker-compose.yml using yamllint (Python library).
+    Returns {"valid": bool|None, "errors": [str], "tool_available": bool}.
+    yamllint is always available (pip-installed), so tool_available is always True.
+    """
+    try:
+        problems = list(yamllint_linter.run(content, _YAMLLINT_CONFIG))
+        if not problems:
+            return {"valid": True, "errors": [], "tool_available": True}
+
+        errors = []
+        for p in problems:
+            errors.append(f"Line {p.line}: {p.message} ({p.rule})")
+
+        return {"valid": False, "errors": errors, "tool_available": True}
+
+    except Exception as e:
+        logger.error(f"yamllint error: {e}")
+        return {"valid": None, "errors": [str(e)], "tool_available": True}

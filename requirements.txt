@@ -6,3 +6,4 @@ python-dotenv==1.2.3
 python-multipart==0.0.32
 sqlalchemy>=2.0
 asyncpg>=0.29
+yamllint>=1.35

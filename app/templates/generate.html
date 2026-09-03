@@ -460,6 +460,20 @@
     color: var(--text-dim); background: var(--surface-3);
     padding: 2px 8px; border-radius: 6px; white-space: nowrap;
   }
+  .heal-errors {
+    padding: 4px 16px 10px 48px;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .heal-err {
+    font-family: var(--mono); font-size: 11px; line-height: 1.55;
+    color: var(--red); opacity: 0.85;
+  }
+  .heal-err::before { content: '\2022\00a0\00a0'; opacity: 0.5; }
+  .heal-fix-note {
+    font-size: 11px; color: var(--emerald); font-weight: 500;
+    margin-top: 2px; display: flex; align-items: center; gap: 4px;
+  }
+  .heal-fix-note::before { content: '\2713'; font-weight: 700; }
   .status-text {
     font-size: 12px; font-weight: 500; color: var(--text-muted);
     transition: color 0.25s; white-space: nowrap;
@@ -880,7 +894,7 @@
     // File data
     var fd = [];
     if (!!msg.dockerfile) fd.push({c:'docker',l:'D',n:'Dockerfile',x:msg.dockerfile,h:'df',v:v.dockerfile});
-    if (!!msg.docker_compose) fd.push({c:'compose',l:'C',n:'docker-compose.yml',x:msg.docker_compose,h:'yaml',v:null});
+    if (!!msg.docker_compose) fd.push({c:'compose',l:'C',n:'docker-compose.yml',x:msg.docker_compose,h:'yaml',v:v.compose});
     if (!!msg.terraform) fd.push({c:'terraform',l:'T',n:'main.tf',x:msg.terraform,h:'hcl',v:v.terraform});
 
     if (fd.length > 0) {
@@ -912,6 +926,9 @@
       if (vData.dockerfile && vData.dockerfile.tool_available) {
         healFiles.push({name:'Dockerfile', v:vData.dockerfile, tool:'hadolint'});
       }
+      if (vData.compose && vData.compose.tool_available) {
+        healFiles.push({name:'docker-compose.yml', v:vData.compose, tool:'yamllint'});
+      }
       if (vData.terraform && vData.terraform.tool_available) {
         healFiles.push({name:'main.tf', v:vData.terraform, tool:'terraform validate'});
       }
@@ -922,17 +939,28 @@
         hH += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
         hH += 'Validation Pipeline</div>';
         healFiles.forEach(function(f) {
-          var healed = f.v.healing_count > 0;
+          var errs = f.v.original_errors || [];
+          var healed = errs.length > 0 && f.v.valid === true;
+          var unhealed = errs.length > 0 && f.v.valid !== true;
           hH += '<div class="heal-step">';
           if (healed) {
             hH += '<span class="heal-ico fix">\u21BB</span>';
-            hH += '<span class="heal-txt"><strong>' + f.name + '</strong> &mdash; ' + f.v.healing_count + ' issue' + (f.v.healing_count !== 1 ? 's' : '') + ' auto-fixed by AI</span>';
+            hH += '<span class="heal-txt"><strong>' + f.name + '</strong> &mdash; ' + errs.length + ' issue' + (errs.length !== 1 ? 's' : '') + ' found and auto-fixed</span>';
+          } else if (unhealed) {
+            hH += '<span class="heal-ico fix" style="background:var(--red-soft);color:var(--red)">\u26A0</span>';
+            hH += '<span class="heal-txt"><strong>' + f.name + '</strong> &mdash; ' + errs.length + ' issue' + (errs.length !== 1 ? 's' : '') + ' found, could not fully fix</span>';
           } else {
             hH += '<span class="heal-ico lint">\u2713</span>';
             hH += '<span class="heal-txt"><strong>' + f.name + '</strong> &mdash; passed validation, no issues found</span>';
           }
           hH += '<span class="heal-tool">' + f.tool + '</span>';
           hH += '</div>';
+          if (errs.length > 0) {
+            hH += '<div class="heal-errors">';
+            errs.forEach(function(e) { hH += '<div class="heal-err">' + escapeHtml(e) + '</div>'; });
+            if (healed) hH += '<div class="heal-fix-note">All issues resolved by AI self-healing</div>';
+            hH += '</div>';
+          }
         });
         healEl.innerHTML = hH;
         group.appendChild(healEl);

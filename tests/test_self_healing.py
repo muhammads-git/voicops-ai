@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-from app.services.self_healing import strip_code_fences, heal_dockerfile, heal_terraform, MAX_HEALING_ATTEMPTS
+from app.services.self_healing import strip_code_fences, heal_dockerfile, heal_terraform, heal_compose, MAX_HEALING_ATTEMPTS
 
 
 class TestStripCodeFences:
@@ -154,3 +154,53 @@ class TestHealTerraform:
 
         assert result["valid"] is None
         assert result["tool_available"] is False
+
+
+class TestHealCompose:
+    @pytest.mark.asyncio
+    async def test_valid_compose_passes_through(self):
+        """If validator says valid, no healing needed."""
+        with patch("app.services.self_healing.validate_compose", new_callable=AsyncMock) as mock_validate:
+            mock_validate.return_value = {"valid": True, "errors": [], "tool_available": True}
+            result = await heal_compose("version: '3.8'\nservices:\n  app:\n    build: .\n")
+
+        assert result["valid"] is True
+        assert result["healing_count"] == 0
+        assert result["original_errors"] == []
+
+    @pytest.mark.asyncio
+    async def test_heals_on_first_attempt(self):
+        """Validator fails first time, LLM fixes it, validator passes."""
+        mock_response = MagicMock()
+        mock_response.choices = [MagicMock()]
+        mock_response.choices[0].message.content = "version: '3.8'\nservices:\n  app:\n    build: .\n"
+
+        with patch("app.services.self_healing.validate_compose", new_callable=AsyncMock) as mock_validate, \
+             patch("app.services.self_healing.groq_client") as mock_client:
+            mock_validate.side_effect = [
+                {"valid": False, "errors": ["Line 5: duplication of key 'build'"], "tool_available": True},
+                {"valid": True, "errors": [], "tool_available": True},
+            ]
+            mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
+            result = await heal_compose("bad yaml")
+
+        assert result["valid"] is True
+        assert result["healing_count"] == 1
+        assert result["original_errors"] == ["Line 5: duplication of key 'build'"]
+
+    @pytest.mark.asyncio
+    async def test_exhausted_attempts(self):
+        """All healing attempts fail."""
+        mock_resp = MagicMock()
+        mock_resp.choices = [MagicMock()]
+        mock_resp.choices[0].message.content = "still: broken"
+
+        with patch("app.services.self_healing.validate_compose", new_callable=AsyncMock) as mock_validate, \
+             patch("app.services.self_healing.groq_client") as mock_client:
+            mock_validate.return_value = {"valid": False, "errors": ["Line 1: bad indent"], "tool_available": True}
+            mock_client.chat.completions.create = AsyncMock(return_value=mock_resp)
+            result = await heal_compose("broken yaml")
+
+        assert result["valid"] is False
+        assert result["healing_count"] == MAX_HEALING_ATTEMPTS
+        assert result["original_errors"] == ["Line 1: bad indent"]

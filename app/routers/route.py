@@ -144,8 +144,8 @@ async def _process_intent(transcript: str, start_time: float):
 
     # --- Telemetry logging ---
     elapsed = time.time() - start_time
-    total_healing = healing_stats.get("dockerfile", 0) + healing_stats.get("terraform", 0)
-    status = "success" if (configs["dockerfile"] or terraform_content) else "failed"
+    total_healing = healing_stats.get("dockerfile", 0) + healing_stats.get("compose", 0) + healing_stats.get("terraform", 0)
+    status = "success" if (configs["dockerfile"] or configs["docker_compose"] or terraform_content) else "failed"
 
     try:
         async with async_session() as session:

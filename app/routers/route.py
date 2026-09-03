@@ -112,6 +112,7 @@ async def _process_intent(transcript: str, start_time: float):
             }
         except Exception as e:
             # Healing should never crash the request
+            logger.error(f"Dockerfile healing exception: {e}")
             validation["dockerfile"] = {"valid": None, "healing_count": 0, "tool_available": False, "original_errors": []}
 
     if configs["docker_compose"]:
@@ -126,6 +127,7 @@ async def _process_intent(transcript: str, start_time: float):
                 "original_errors": healed.get("original_errors", []),
             }
         except Exception as e:
+            logger.error(f"Compose healing exception: {e}")
             validation["compose"] = {"valid": None, "healing_count": 0, "tool_available": False, "original_errors": []}
 
     if terraform_content:
@@ -140,6 +142,7 @@ async def _process_intent(transcript: str, start_time: float):
                 "original_errors": healed.get("original_errors", []),
             }
         except Exception as e:
+            logger.error(f"Terraform healing exception: {e}")
             validation["terraform"] = {"valid": None, "healing_count": 0, "tool_available": False, "original_errors": []}
 
     # --- Telemetry logging ---

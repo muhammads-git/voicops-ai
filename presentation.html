@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoicOps — Project Presentation</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #020617;
+    --surface: #0b1021;
+    --surface-2: #111827;
+    --border: rgba(148, 163, 184, 0.12);
+    --text: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent: #38bdf8;
+    --accent-2: #0ea5e9;
+    --accent-soft: rgba(56, 189, 248, 0.14);
+    --emerald: #34d399;
+    --emerald-soft: rgba(52, 211, 153, 0.14);
+    --violet: #a78bfa;
+    --violet-soft: rgba(167, 139, 250, 0.12);
+    --red: #f87171;
+    --red-soft: rgba(248, 113, 113, 0.14);
+    --amber: #fbbf24;
+    --amber-soft: rgba(251, 191, 36, 0.14);
+    --radius: 14px;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── Slide Layout ── */
+  .slide {
+    min-height: 100vh;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide-inner {
+    max-width: 1100px;
+    width: 100%;
+  }
+
+  /* ── Background effects ── */
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(56,189,248,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .slide:nth-child(even)::before {
+    left: -20%;
+    right: auto;
+    background: radial-gradient(circle, rgba(167,139,250,0.06) 0%, transparent 70%);
+  }
+
+  /* ── Typography ── */
+  .slide-number {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    opacity: 0.8;
+  }
+
+  h1 {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1.5px;
+    margin-bottom: 24px;
+  }
+
+  h2 {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -1px;
+    margin-bottom: 20px;
+  }
+
+  h3 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--text-secondary);
+    max-width: 700px;
+    line-height: 1.7;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, var(--accent), var(--violet));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Cards & Grid ── */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 32px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    margin-top: 32px;
+  }
+
+  .grid-4 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover {
+    border-color: rgba(56, 189, 248, 0.3);
+  }
+
+  .card-icon {
+    font-size: 28px;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .card p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .card h3 {
+    font-size: 17px;
+  }
+
+  /* ── Pipeline Diagram ── */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-top: 40px;
+  }
+
+  .pipeline-step {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 18px;
+    text-align: center;
+    position: relative;
+  }
+
+  .pipeline-step::after {
+    content: '→';
+    position: absolute;
+    right: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: var(--accent);
+    z-index: 1;
+  }
+
+  .pipeline-step:last-child::after {
+    display: none;
+  }
+
+  .step-num {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 28px;
+    margin-bottom: 10px;
+  }
+
+  .pipeline-step h4 {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .pipeline-step p {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* ── Metrics Row ── */
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 32px;
+  }
+
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    text-align: center;
+  }
+
+  .metric-value {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 4px;
+  }
+
+  .metric-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ── Table ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 24px;
+    font-size: 14px;
+  }
+
+  .data-table th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--surface);
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .data-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .data-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .badge-green {
+    background: var(--emerald-soft);
+    color: var(--emerald);
+  }
+
+  .badge-blue {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .badge-violet {
+    background: var(--violet-soft);
+    color: var(--violet);
+  }
+
+  .badge-red {
+    background: var(--red-soft);
+    color: var(--red);
+  }
+
+  .badge-amber {
+    background: var(--amber-soft);
+    color: var(--amber);
+  }
+
+  /* ── Feature List ── */
+  .feature-list {
+    list-style: none;
+    margin-top: 20px;
+  }
+
+  .feature-list li {
+    padding: 10px 0;
+    color: var(--text-secondary);
+    font-size: 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .feature-list li::before {
+    content: '✓';
+    color: var(--emerald);
+    font-weight: 700;
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ── Code Block ── */
+  .code-block {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    overflow-x: auto;
+    margin-top: 20px;
+  }
+
+  .code-block .comment { color: var(--text-muted); }
+  .code-block .keyword { color: var(--accent); }
+  .code-block .string { color: var(--emerald); }
+
+  /* ── Divider ── */
+  .divider {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--violet));
+    border-radius: 2px;
+    margin: 24px 0;
+  }
+
+  /* ── Layer Diagram ── */
+  .layer-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .layer-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+  }
+
+  .layer-badge {
+    flex-shrink: 0;
+    width: 70px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--mono);
+  }
+
+  .layer-content h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .layer-content p {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* ── Navigation ── */
+  .nav-dots {
+    position: fixed;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
+  }
+
+  .nav-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(148, 163, 184, 0.2);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .nav-dot:hover,
+  .nav-dot.active {
+    background: var(--accent);
+    transform: scale(1.3);
+  }
+
+  /* ── Print ── */
+  @media print {
+    html { scroll-snap-type: none; }
+    .slide { min-height: auto; padding: 40px 60px; page-break-after: always; }
+    .nav-dots { display: none; }
+    body { background: white; color: #1a1a2e; }
+    .card, .metric-card, .pipeline-step, .layer-item { border: 1px solid #e2e8f0; background: #f8fafc; }
+    .gradient-text { -webkit-text-fill-color: #0ea5e9; }
+    h1, h2, h3, h4 { color: #0f172a; }
+    .subtitle, .card p, .feature-list li, .pipeline-step p { color: #475569; }
+  }
+
+  @media (max-width: 900px) {
+    .slide { padding: 40px 24px; }
+    h1 { font-size: 34px; }
+    h2 { font-size: 28px; }
+    .grid-2, .grid-3, .grid-4, .metrics-row { grid-template-columns: 1fr; }
+    .pipeline { flex-direction: column; gap: 12px; }
+    .pipeline-step::after { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation Dots -->
+<nav class="nav-dots">
+  <button class="nav-dot active" onclick="goToSlide(0)" title="Title"></button>
+  <button class="nav-dot" onclick="goToSlide(1)" title="Problem"></button>
+  <button class="nav-dot" onclick="goToSlide(2)" title="Solution"></button>
+  <button class="nav-dot" onclick="goToSlide(3)" title="Impact"></button>
+  <button class="nav-dot" onclick="goToSlide(4)" title="Pipeline"></button>
+  <button class="nav-dot" onclick="goToSlide(5)" title="Innovation"></button>
+  <button class="nav-dot" onclick="goToSlide(6)" title="Self-Healing"></button>
+  <button class="nav-dot" onclick="goToSlide(7)" title="Built"></button>
+  <button class="nav-dot" onclick="goToSlide(8)" title="Summary"></button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════ SLIDE 0: TITLE ═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-0">
+  <div class="slide-inner" style="text-align: center;">
+    <div style="font-size: 48px; margin-bottom: 24px;">🎙️</div>
+    <h1><span class="gradient-text">VoicOps</span></h1>
+    <p class="subtitle" style="margin: 0 auto; font-size: 22px;">
+      Voice-to-Infrastructure Pipeline
+    </p>
+    <div class="divider" style="margin: 32px auto;"></div>
+    <p style="color: var(--text-muted); font-size: 15px; max-width: 600px; margin: 0 auto; line-height: 1.8;">
+      Convert spoken infrastructure requirements into validated, self-healing<br>
+      Docker, Compose, and Terraform configurations — in seconds.
+    </p>
+    <div style="margin-top: 48px; display: flex; justify-content: center; gap: 32px;">
+      <span class="badge badge-blue">FastAPI</span>
+      <span class="badge badge-violet">GPT-OSS-120B</span>
+      <span class="badge badge-green">Self-Healing</span>
+      <span class="badge badge-amber">Alibaba Cloud</span>
+    </div>
+    <p style="color: var(--text-muted); font-size: 12px; margin-top: 48px; font-family: var(--mono); letter-spacing: 2px;">
+      AI ALIBABA HACKATHON — PAKISTAN
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ SLIDE 1: THE PROBLEM ═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="slide-number">01 — The Problem</div>
+    <h2>Infrastructure Code is <span class="gradient-text">Slow, Error-Prone, and Gatekept</span></h2>
+    <p class="subtitle">Developers spend hours writing boilerplate Dockerfiles, Compose manifests, and Terraform scripts — only to discover errors during deployment.</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <span class="card-icon">⏱️</span>
+        <h3>Boilerplate Fatigue</h3>
+        <p>Repetitive infrastructure code that follows known patterns but demands meticulous syntax attention. A single misconfigured port or missing env variable causes cascading failures.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🔧</span>
+        <h3>Manual Validation Loops</h3>
+        <p>Write → lint → fix → repeat. Every config must be separately validated against Hadolint, yamllint, and Terraform Validate. This cycle is slow and inconsistent.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🚫</span>
+        <h3>Accessibility Gap</h3>
+        <p>Non-technical stakeholders cannot participate in infrastructure decisions. The tooling requires specialized knowledge of containers, orchestration, and cloud APIs.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🎤</span>
+        <h3>Voice-to-Config Disconnect</h3>
+        <p>Voice interfaces have matured in consumer products, yet no tool bridges spoken requirements and validated, deployable infrastructure code.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ SLIDE 2: THE SOLUTION ═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="slide-number">02 — The Solution</div>
+    <h2>Speak It. <span class="gradient-text">VoicOps Builds It.</span></h2>
+    <p class="subtitle">Natural language commands → validated, self-healing infrastructure code in under 10 seconds.</p>
+
+    <div class="pipeline">
+      <div class="pipeline-step">
+        <span class="step-num">1</span>
+        <h4>Speak or Type</h4>
+        <p>Voice command or text description of infrastructure needs</p>
+      </div>
+      <div class="pipeline-step">
+        <span class="step-num">2</span>
+        <h4>AI Processing</h4>
+        <p>Speech-to-text, intent extraction, config generation</p>
+      </div>
+      <div class="pipeline-step">
+        <span class="step-num">3</span>
+        <h4>Auto-Validate</h4>
+        <p>Hadolint, yamllint, Terraform Validate</p>
+      </div>
+      <div class="pipeline-step">
+        <span class="step-num">4</span>
+        <h4>Self-Heal</h4>
+        <p>Up to 3 LLM-powered fix attempts per file</p>
+      </div>
+      <div class="pipeline-step">
+        <span class="step-num">5</span>
+        <h4>Download</h4>
+        <p>Production-ready files, ready to deploy</p>
+      </div>
+    </div>
+
+    <div class="grid-3" style="margin-top: 40px;">
+      <div class="card" style="text-align: center; padding: 20px;">
+        <h3 style="color: var(--accent);">DevOps Engineers</h3>
+        <p>Eliminates boilerplate; pre-validated configs with best practices</p>
+      </div>
+      <div class="card" style="text-align: center; padding: 20px;">
+        <h3 style="color: var(--violet);">Startups & Small Teams</h3>
+        <p>Rapid infrastructure prototyping without dedicated DevOps staff</p>
+      </div>
+      <div class="card" style="text-align: center; padding: 20px;">
+        <h3 style="color: var(--emerald);">Non-Technical Users</h3>
+        <p>Provision infrastructure through natural language — no YAML expertise needed</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ SLIDE 3: IMPACT ═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="slide-number">03 — Impact</div>
+    <h2>Measurable <span class="gradient-text">Efficiency Gains</span></h2>
+
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-value" style="color: var(--accent);">10×</div>
+        <div class="metric-label">Faster Config</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" style="color: var(--emerald);">&lt;10s</div>
+        <div class="metric-label">Generation Time</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" style="color: var(--violet);">3×</div>
+        <div class="metric-label">Self-Heal Cycles</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" style="color: var(--amber);">0</div>
+        <div class="metric-label">Manual Linting</div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 36px;">
+      <div>
+        <h3>Efficiency</h3>
+        <ul class="feature-list">
+          <li>30–60 minutes of manual work reduced to under 10 seconds</li>
+          <li>Zero manual linting — automated validation on every file</li>
+          <li>Self-healing catches errors before the user sees output</li>
+          <li>Consistent best practices across all generated configs</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Accessibility</h3>
+        <ul class="feature-list">
+          <li>Voice-first interface removes infrastructure syntax barriers</li>
+          <li>3-layer speech correction prevents mishearing propagation</li>
+          <li>Transparent feedback: what was heard vs. what was understood</li>
+          <li>Built-in analytics dashboard for operational visibility</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ SLIDE 4: PIPELINE ═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="slide-number">04 — Architecture</div>
+    <h2>5-Step <span class="gradient-text">AI Pipeline</span></h2>
+
+    <div class="code-block" style="font-size: 12px; line-height: 1.9; padding: 32px;">
+<span class="comment">/* VoicOps Pipeline Architecture */</span>
+
+<span class="keyword">User (Voice/Text)</span>
+       │
+       ▼
+<span class="keyword">┌─ Step 1: Speech-to-Text ──────┐</span>  Deepgram Nova-3 + Web Audio API
+       │ Transcript
+       ▼
+<span class="keyword">┌─ Step 2: Intent Extraction ───┐</span>  GPT-OSS-120B + 3-Layer Defense
+       │ {services, unsupported, deploy_cloud}
+       ▼
+<span class="keyword">┌─ Step 3: Config Generation ───┐</span>  Template Engine (8 services)
+       │ Dockerfile + docker-compose.yml
+       ▼
+<span class="keyword">┌─ Step 4: Terraform (optional) ┐</span>  Alibaba Cloud VPC, VSwitch, SG, ECS
+       │ + main.tf (if cloud deployment detected)
+       ▼
+<span class="keyword">┌─ Step 5: Validate & Heal ─────┐</span>  Hadolint + yamllint + terraform validate
+       │                          Up to 3 LLM healing cycles per file
+       ▼
+<span class="string">✓ Validated, production-ready infrastructure files</span>
+    </div>
+
+    <div class="grid-4" style="margin-top: 24px;">
+      <div class="card" style="padding: 16px; text-align: center;">
+        <h3 style="font-size: 14px;">Runtimes</h3>
+        <p style="font-size: 12px;">Node.js · FastAPI<br>Flask · Django</p>
+      </div>
+      <div class="card" style="padding: 16px; text-align: center;">
+        <h3 style="font-size: 14px;">Databases</h3>
+        <p style="font-size: 12px;">PostgreSQL · MySQL<br>Redis · MongoDB</p>
+      </div>
+      <div class="card" style="padding: 16px; text-align: center;">
+        <h3 style="font-size: 14px;">Cloud</h3>
+        <p style="font-size: 12px;">Alibaba Cloud<br>VPC · ECS · SG</p>
+      </div>
+      <div class="card" style="padding: 16px; text-align: center;">
+        <h3 style="font-size: 14px;">Validation</h3>
+        <p style="font-size: 12px;">Hadolint · yamllint<br>Terraform Validate</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ SLIDE 5: INNOVATION ═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="slide-number">05 — Innovation</div>
+    <h2>3-Layer <span class="gradient-text">Speech Defense System</span></h2>
+    <p class="subtitle">Every layer was designed to catch a different category of speech recognition error.</p>
+
+    <div class="layer-stack">
+      <div class="layer-item">
+        <div class="layer-badge" style="background: var(--accent-soft); color: var(--accent);">LAYER 1</div>
+        <div class="layer-content">
+          <h4>Transcript Normalizer</h4>
+          <p>Pre-LLM text replacement of 40+ known Whisper mishearings — "red is" → redis, "my sequel" → mysql, "flash" → flask</p>
+        </div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-badge" style="background: var(--violet-soft); color: var(--violet);">LAYER 2</div>
+        <div class="layer-content">
+          <h4>Fuzzy Resolver</h4>
+          <p>Post-LLM Levenshtein edit-distance matching on unrecognized service names (max distance: 2) — "redish" → redis, "mongob" → mongodb</p>
+        </div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-badge" style="background: var(--emerald-soft); color: var(--emerald);">LAYER 3</div>
+        <div class="layer-content">
+          <h4>Phonetic Rescuer</h4>
+          <p>Curated sound-alike alias lookup on unsupported items only — every entry confirmed through real testing, not guessed</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 32px;">
+      <div class="card">
+        <span class="card-icon">⚡</span>
+        <h3>Circuit Breaker Pattern</h3>
+        <p>State machine (closed → open → half-open → closed) prevents cascading API failures. 5 failures trigger 30-second cooldown with automatic recovery testing.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">📊</span>
+        <h3>Built-in Telemetry</h3>
+        <p>Every request logged to PostgreSQL: transcript, intent, outputs, validation results, healing counts, and response times. Full operational visibility from day one.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ SLIDE 6: SELF-HEALING ═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="slide-number">06 — Self-Healing</div>
+    <h2>Automated <span class="gradient-text">Error Correction</span></h2>
+    <p class="subtitle">Generated code is validated and auto-fixed without user intervention — up to 3 attempts per file.</p>
+
+    <div class="pipeline" style="margin-top: 32px;">
+      <div class="pipeline-step">
+        <span class="step-num">1</span>
+        <h4>Generate</h4>
+        <p>Template engine produces config file</p>
+      </div>
+      <div class="pipeline-step">
+        <span class="step-num">2</span>
+        <h4>Validate</h4>
+        <p>Lint with Hadolint / yamllint / terraform validate</p>
+      </div>
+      <div class="pipeline-step">
+        <span class="step-num">3</span>
+        <h4>Detect Errors</h4>
+        <p>Capture validation errors with full context</p>
+      </div>
+      <div class="pipeline-step">
+        <span class="step-num">4</span>
+        <h4>LLM Heal</h4>
+        <p>GPT-OSS-120B fixes errors in code</p>
+      </div>
+      <div class="pipeline-step">
+        <span class="step-num">5</span>
+        <h4>Re-Validate</h4>
+        <p>Confirm fix or retry (max 3 cycles)</p>
+      </div>
+    </div>
+
+    <table class="data-table" style="margin-top: 36px;">
+      <thead>
+        <tr>
+          <th>File Type</th>
+          <th>Validator</th>
+          <th>Healing Model</th>
+          <th>Max Attempts</th>
+          <th>Graceful Degradation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Dockerfile</td>
+          <td><span class="badge badge-blue">Hadolint</span></td>
+          <td>GPT-OSS-120B</td>
+          <td>3</td>
+          <td><span class="badge badge-amber">Unchecked if tool missing</span></td>
+        </tr>
+        <tr>
+          <td>docker-compose.yml</td>
+          <td><span class="badge badge-violet">yamllint</span></td>
+          <td>GPT-OSS-120B</td>
+          <td>3</td>
+          <td><span class="badge badge-green">Always available (Python lib)</span></td>
+        </tr>
+        <tr>
+          <td>Terraform main.tf</td>
+          <td><span class="badge badge-green">terraform validate</span></td>
+          <td>GPT-OSS-120B</td>
+          <td>3</td>
+          <td><span class="badge badge-amber">Unchecked if tool missing</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ SLIDE 7: WHAT'S BUILT ═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-7">
+  <div class="slide-inner">
+    <div class="slide-number">07 — What Has Been Built</div>
+    <h2>Fully Functional <span class="gradient-text">End-to-End Prototype</span></h2>
+
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-value" style="color: var(--accent);">4,500+</div>
+        <div class="metric-label">Lines of Code</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" style="color: var(--emerald);">7</div>
+        <div class="metric-label">Backend Services</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" style="color: var(--violet);">8</div>
+        <div class="metric-label">Test Suites</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" style="color: var(--amber);">8</div>
+        <div class="metric-label">Supported Services</div>
+      </div>
+    </div>
+
+    <table class="data-table" style="margin-top: 36px;">
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Status</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>FastAPI Backend</td>
+          <td><span class="badge badge-green">Complete</span></td>
+          <td>7 API endpoints: generate-config, generate-text, analytics, health</td>
+        </tr>
+        <tr>
+          <td>Speech-to-Text</td>
+          <td><span class="badge badge-green">Complete</span></td>
+          <td>Deepgram Nova-3 with WAV audio processing</td>
+        </tr>
+        <tr>
+          <td>Intent Extraction</td>
+          <td><span class="badge badge-green">Complete</span></td>
+          <td>GPT-OSS-120B + 3-layer error correction (40+ corrections)</td>
+        </tr>
+        <tr>
+          <td>Config Generation</td>
+          <td><span class="badge badge-green">Complete</span></td>
+          <td>Templates for 8 services (4 runtimes + 4 databases)</td>
+        </tr>
+        <tr>
+          <td>Terraform Generation</td>
+          <td><span class="badge badge-green">Complete</span></td>
+          <td>Alibaba Cloud: VPC, VSwitch, Security Groups, ECS</td>
+        </tr>
+        <tr>
+          <td>Self-Healing</td>
+          <td><span class="badge badge-green">Complete</span></td>
+          <td>Up to 3 LLM-powered fix attempts per file</td>
+        </tr>
+        <tr>
+          <td>Validation</td>
+          <td><span class="badge badge-green">Complete</span></td>
+          <td>Hadolint + yamllint + Terraform Validate with graceful degradation</td>
+        </tr>
+        <tr>
+          <td>Circuit Breaker</td>
+          <td><span class="badge badge-green">Complete</span></td>
+          <td>Dual-breaker pattern (speech + intent APIs)</td>
+        </tr>
+        <tr>
+          <td>Frontend (3 pages)</td>
+          <td><span class="badge badge-green">Complete</span></td>
+          <td>Landing page, Generator UI, Analytics dashboard</td>
+        </tr>
+        <tr>
+          <td>Database & Telemetry</td>
+          <td><span class="badge badge-green">Complete</span></td>
+          <td>PostgreSQL with SQLAlchemy async; graceful degradation</td>
+        </tr>
+        <tr>
+          <td>Test Suite</td>
+          <td><span class="badge badge-green">Complete</span></td>
+          <td>8 test files covering all major services</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ SLIDE 8: SUMMARY ═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-8">
+  <div class="slide-inner" style="text-align: center;">
+    <div class="slide-number">Summary</div>
+    <h2><span class="gradient-text">The Future of Infrastructure is Spoken</span></h2>
+    <div class="divider" style="margin: 24px auto;"></div>
+
+    <div class="grid-3" style="max-width: 900px; margin: 32px auto;">
+      <div class="card" style="text-align: center; padding: 24px;">
+        <div style="font-size: 32px; margin-bottom: 12px;">🎙️</div>
+        <h3 style="font-size: 15px;">Voice-First</h3>
+        <p>Describe infrastructure in plain language — no syntax to learn, no templates to memorize.</p>
+      </div>
+      <div class="card" style="text-align: center; padding: 24px;">
+        <div style="font-size: 32px; margin-bottom: 12px;">🔄</div>
+        <h3 style="font-size: 15px;">Self-Healing</h3>
+        <p>AI-powered validation and auto-fix ensures every file is production-ready on delivery.</p>
+      </div>
+      <div class="card" style="text-align: center; padding: 24px;">
+        <div style="font-size: 32px; margin-bottom: 12px;">🚀</div>
+        <h3 style="font-size: 15px;">Deploy-Ready</h3>
+        <p>Download and run immediately — Dockerfiles, Compose, and Terraform configs validated and ready.</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 40px;">
+      <p style="color: var(--text-muted); font-size: 14px; line-height: 2;">
+        Built with <span style="color: var(--accent);">FastAPI</span> ·
+        <span style="color: var(--violet);">GPT-OSS-120B</span> ·
+        <span style="color: var(--emerald);">Deepgram Nova-3</span> ·
+        <span style="color: var(--amber);">Alibaba Cloud</span>
+      </p>
+    </div>
+
+    <div style="margin-top: 48px; padding: 28px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); max-width: 500px; margin-left: auto; margin-right: auto;">
+      <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.7;">
+        <strong style="color: var(--text);">VoicOps</strong> — AI Alibaba Hackathon, Pakistan<br>
+        Solo-developed, production-quality, AI-powered infrastructure automation.
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Navigation
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('.nav-dot');
+
+  function goToSlide(index) {
+    slides[index].scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // Update active dot on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const index = Array.from(slides).indexOf(entry.target);
+        dots.forEach(d => d.classList.remove('active'));
+        dots[index].classList.add('active');
+      }
+    });
+  }, { threshold: 0.5 });
+
+  slides.forEach(slide => observer.observe(slide));
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    const current = Array.from(dots).findIndex(d => d.classList.contains('active'));
+    if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+      e.preventDefault();
+      if (current < slides.length - 1) goToSlide(current + 1);
+    } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+      e.preventDefault();
+      if (current > 0) goToSlide(current - 1);
+    }
+  });
+</script>
+</body>
+</html>

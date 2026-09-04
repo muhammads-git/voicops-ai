@@ -703,6 +703,8 @@
   let isRecording = false;
   let recordingStartTime = 0;
   let animFrameId = null;
+  let recordingTimeoutId = null;
+  const MAX_RECORDING_MS = 30000;
   const STORAGE_KEY = 'voicops_chat_history';
   let chatHistory = [];
 
@@ -1013,6 +1015,7 @@
 
   // ── Audio cleanup helper ──
   function cleanupAudio(cancelVisualizer){
+    if(recordingTimeoutId){clearTimeout(recordingTimeoutId); recordingTimeoutId=null;}
     if(cancelVisualizer!==false){
       if(animFrameId){cancelAnimationFrame(animFrameId);animFrameId=null;}
       document.querySelectorAll('.wave-bar').forEach(function(b){b.classList.remove('audio-level');b.style.transform='';b.style.opacity='';});
@@ -1037,14 +1040,14 @@
       mediaRecorder=new MediaRecorder(stream);
       mediaRecorder.ondataavailable=function(e){if(e.data&&e.data.size>0)audioChunks.push(e.data);};
       mediaRecorder.onerror=function(e){
-        isRecording=false;
+        isRecording=false; spaceHeld=false;
         cleanupAudio();
         micBtn.classList.remove('recording','processing');
         setStatus('Recording error — try again','error');
       };
       mediaRecorder.onstop=async function(){
         var elapsed=Date.now()-recordingStartTime;
-        isRecording=false;
+        isRecording=false; spaceHeld=false;
         cleanupAudio();
         micBtn.classList.remove('recording');
         // Min-duration guard: catches quick taps that produce <500ms of audio
@@ -1064,6 +1067,14 @@
       };
       mediaRecorder.start();
       micBtn.classList.add('recording'); setStatus('Listening...','recording');
+      // Safety cap: auto-stop after MAX_RECORDING_MS to prevent stuck recordings
+      recordingTimeoutId = setTimeout(function(){
+        if(isRecording){
+          spaceHeld=false;
+          stopRecording();
+          setStatus('Recording limit reached','error');
+        }
+      }, MAX_RECORDING_MS);
       // Live audio-level visualizer — drives wave bars from real mic input
       var bars=document.querySelectorAll('.wave-bar');
       (function drawLevel(){
@@ -1080,7 +1091,7 @@
         animFrameId=requestAnimationFrame(drawLevel);
       })();
     }catch(e){
-      isRecording=false;
+      isRecording=false; spaceHeld=false;
       cleanupAudio();
       micBtn.classList.remove('recording','processing');
       setStatus('Microphone access denied','error');
@@ -1091,7 +1102,7 @@
     var elapsed=Date.now()-recordingStartTime;
     if(elapsed<500){
       // Too short — don't show "Processing...", just stop and warn
-      isRecording=false;
+      isRecording=false; spaceHeld=false;
       if(mediaRecorder&&mediaRecorder.state!=='inactive'){try{mediaRecorder.stop();}catch(e){}}
       cleanupAudio();
       micBtn.classList.remove('recording','processing');
@@ -1103,14 +1114,14 @@
     setStatus('Processing...','');
     if(mediaRecorder&&mediaRecorder.state!=='inactive'){
       try{mediaRecorder.stop();}catch(e){
-        isRecording=false;
+        isRecording=false; spaceHeld=false;
         cleanupAudio();
-        micBtn.classList.remove('processing');
+        micBtn.classList.remove('recording','processing');
       }
     }else{
-      isRecording=false;
+      isRecording=false; spaceHeld=false;
       cleanupAudio();
-      micBtn.classList.remove('processing');
+      micBtn.classList.remove('recording','processing');
     }
   }
 
@@ -1187,22 +1198,31 @@
 
   // ── Keyboard shortcut: Space to record ──
   document.addEventListener('keydown',function(e){
-    if(e.code==='Space'&&!spaceHeld&&!isRecording&&document.activeElement!==textInput&&!e.repeat){
+    if((e.code==='Space'||e.key===' ')&&!isRecording&&document.activeElement!==textInput&&!e.repeat){
       e.preventDefault(); spaceHeld=true; startRecording();
     }
     if(e.key==='Escape'){hideTextInput();}
   });
   document.addEventListener('keyup',function(e){
-    if(e.code==='Space'&&spaceHeld){
+    if((e.code==='Space'||e.key===' ')&&isRecording){
       e.preventDefault(); spaceHeld=false; stopRecording();
     }
   });
 
-  micBtn.addEventListener('mousedown',function(){if(!isRecording)startRecording();});
-  micBtn.addEventListener('mouseup',function(){if(isRecording)stopRecording();});
-  micBtn.addEventListener('mouseleave',function(){if(isRecording)stopRecording();});
-  micBtn.addEventListener('touchstart',function(e){e.preventDefault();if(!isRecording)startRecording();});
-  micBtn.addEventListener('touchend',function(e){e.preventDefault();if(isRecording)stopRecording();});
+  // Mic button: hold-to-record, but mousedown on an active recording stops it (escape hatch for stuck recordings)
+  micBtn.addEventListener('mousedown',function(e){
+    e.preventDefault();
+    if(isRecording){ stopRecording(); }
+    else { startRecording(); }
+  });
+  micBtn.addEventListener('mouseup',function(e){
+    e.preventDefault();
+    // If the user started the recording with the mouse, stop it on release.
+    if(isRecording && !spaceHeld){ stopRecording(); }
+  });
+  micBtn.addEventListener('mouseleave',function(){if(isRecording&&!spaceHeld)stopRecording();});
+  micBtn.addEventListener('touchstart',function(e){e.preventDefault();if(isRecording)stopRecording();else startRecording();});
+  micBtn.addEventListener('touchend',function(e){e.preventDefault();if(isRecording&&!spaceHeld)stopRecording();});
 
   // ── Demo mode (auto-trigger from URL param) ──
   var demoPrompt = new URLSearchParams(window.location.search).get('demo');

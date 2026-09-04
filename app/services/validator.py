@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import tempfile
 import os
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from yamllint import linter as yamllint_linter
@@ -16,6 +17,10 @@ logger = logging.getLogger(__name__)
 
 # 15-second timeout for all subprocess calls
 SUBPROCESS_TIMEOUT = 15
+
+# Dedicated executor prevents validation tasks from exhausting the default
+# thread pool used by asyncio.to_thread elsewhere in the app.
+VALIDATION_EXECUTOR = ThreadPoolExecutor(max_workers=16, thread_name_prefix="voicops_val")
 
 # Project-local bin directory for validator tools (see install_validators.ps1)
 BIN_DIR = Path(__file__).resolve().parent.parent.parent / "bin"
@@ -54,9 +59,10 @@ async def validate_dockerfile(content: str) -> dict:
         return proc.stdout, proc.stderr, proc.returncode
 
     try:
+        loop = asyncio.get_running_loop()
         stdout, stderr, returncode = await asyncio.wait_for(
-            asyncio.to_thread(_run_hadolint),
-            timeout=SUBPROCESS_TIMEOUT + 2,
+            loop.run_in_executor(VALIDATION_EXECUTOR, _run_hadolint),
+            timeout=60,  # generous overall ceiling; subprocess itself is capped at 15s
         )
 
         if stderr:
@@ -142,9 +148,10 @@ async def validate_terraform(content: str) -> dict:
         return validate_proc.stdout, validate_proc.stderr, validate_proc.returncode
 
     try:
+        loop = asyncio.get_running_loop()
         stdout, stderr, returncode = await asyncio.wait_for(
-            asyncio.to_thread(_run_terraform),
-            timeout=SUBPROCESS_TIMEOUT + 65,
+            loop.run_in_executor(VALIDATION_EXECUTOR, _run_terraform),
+            timeout=120,  # terraform init can be slow; subprocess calls enforce their own shorter timeouts
         )
 
         if returncode != 0 and not stdout:

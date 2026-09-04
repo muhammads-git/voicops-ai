@@ -1011,11 +1011,22 @@
     return {blob:new Blob([wb],{type:'audio/wav'}),duration:len/sr};
   }
 
+  // ── Audio cleanup helper ──
+  function cleanupAudio(cancelVisualizer){
+    if(cancelVisualizer!==false){
+      if(animFrameId){cancelAnimationFrame(animFrameId);animFrameId=null;}
+      document.querySelectorAll('.wave-bar').forEach(function(b){b.classList.remove('audio-level');b.style.transform='';b.style.opacity='';});
+    }
+    if(stream){try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){} stream=null;}
+    if(audioCtx){try{audioCtx.close();}catch(e){} audioCtx=null;}
+  }
+
   // ── Recording ──
   async function startRecording(){
     if(isRecording) return;          // prevent double-start (race condition guard)
     isRecording = true;
     recordingStartTime = Date.now();
+    audioChunks = [];
     try{
       stream=await navigator.mediaDevices.getUserMedia({audio:true});
       audioCtx=new(window.AudioContext||window.webkitAudioContext)();
@@ -1023,21 +1034,32 @@
       analyser=audioCtx.createAnalyser(); analyser.fftSize=128;
       dataArray=new Uint8Array(analyser.frequencyBinCount);
       src.connect(analyser);
-      mediaRecorder=new MediaRecorder(stream); audioChunks=[];
+      mediaRecorder=new MediaRecorder(stream);
       mediaRecorder.ondataavailable=function(e){if(e.data&&e.data.size>0)audioChunks.push(e.data);};
+      mediaRecorder.onerror=function(e){
+        isRecording=false;
+        cleanupAudio();
+        micBtn.classList.remove('recording','processing');
+        setStatus('Recording error — try again','error');
+      };
       mediaRecorder.onstop=async function(){
         var elapsed=Date.now()-recordingStartTime;
         isRecording=false;
-        // Stop the live audio-level visualizer
-        if(animFrameId){cancelAnimationFrame(animFrameId);animFrameId=null;}
-        document.querySelectorAll('.wave-bar').forEach(function(b){b.classList.remove('audio-level');b.style.transform='';b.style.opacity='';});
+        cleanupAudio();
+        micBtn.classList.remove('recording');
         // Min-duration guard: catches quick taps that produce <500ms of audio
-        if(elapsed<500||audioChunks.length===0){setStatus('Too short \u2014 hold longer','error');micBtn.classList.remove('recording','processing');return;}
+        if(elapsed<500||audioChunks.length===0){
+          micBtn.classList.remove('processing');
+          setStatus('Too short \u2014 hold longer','error');
+          return;
+        }
         var wb=new Blob(audioChunks,{type:'audio/webm'});
-        stream.getTracks().forEach(function(t){t.stop();});
-        try{audioCtx.close();}catch(e){}
         var r=await webmToWav(wb);
-        if(r.duration<0.5){setStatus('Too short \u2014 hold longer','error');micBtn.classList.remove('recording','processing');return;}
+        if(r.duration<0.5){
+          micBtn.classList.remove('processing');
+          setStatus('Too short \u2014 hold longer','error');
+          return;
+        }
         await sendAudio(r.blob);
       };
       mediaRecorder.start();
@@ -1057,25 +1079,48 @@
         });
         animFrameId=requestAnimationFrame(drawLevel);
       })();
-    }catch(e){isRecording=false;setStatus('Microphone access denied','error');}
+    }catch(e){
+      isRecording=false;
+      cleanupAudio();
+      micBtn.classList.remove('recording','processing');
+      setStatus('Microphone access denied','error');
+    }
   }
   function stopRecording(){
     if(!isRecording)return;                       // already stopped or never started
-    micBtn.classList.remove('recording');
-    micBtn.classList.add('processing');
-    setStatus('Processing...','');
-    // Min-time guard: if user released before 500ms, warn immediately
     var elapsed=Date.now()-recordingStartTime;
     if(elapsed<500){
+      // Too short — don't show "Processing...", just stop and warn
       isRecording=false;
       if(mediaRecorder&&mediaRecorder.state!=='inactive'){try{mediaRecorder.stop();}catch(e){}}
+      cleanupAudio();
+      micBtn.classList.remove('recording','processing');
       setStatus('Too short \u2014 hold longer','error');
       return;
     }
+    micBtn.classList.remove('recording');
+    micBtn.classList.add('processing');
+    setStatus('Processing...','');
     if(mediaRecorder&&mediaRecorder.state!=='inactive'){
-      try{mediaRecorder.stop();}catch(e){isRecording=false;}
-    }else{isRecording=false;}
+      try{mediaRecorder.stop();}catch(e){
+        isRecording=false;
+        cleanupAudio();
+        micBtn.classList.remove('processing');
+      }
+    }else{
+      isRecording=false;
+      cleanupAudio();
+      micBtn.classList.remove('processing');
+    }
   }
+
+  // ── Window blur safety: release stuck space key / recording ──
+  window.addEventListener('blur', function(){
+    if(spaceHeld){
+      spaceHeld=false;
+      if(isRecording) stopRecording();
+    }
+  });
 
   async function sendAudio(audioBlob){
     var fd=new FormData(); fd.append('audio',audioBlob,'command.wav');
@@ -1142,7 +1187,7 @@
 
   // ── Keyboard shortcut: Space to record ──
   document.addEventListener('keydown',function(e){
-    if(e.code==='Space'&&!spaceHeld&&document.activeElement!==textInput&&!e.repeat){
+    if(e.code==='Space'&&!spaceHeld&&!isRecording&&document.activeElement!==textInput&&!e.repeat){
       e.preventDefault(); spaceHeld=true; startRecording();
     }
     if(e.key==='Escape'){hideTextInput();}

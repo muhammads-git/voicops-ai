@@ -219,3 +219,6 @@ __marimo__/
 
 # Validator tool binaries (downloaded via install_validators.ps1)
 bin/
+
+# Tests — kept locally, not committed to repo
+tests/

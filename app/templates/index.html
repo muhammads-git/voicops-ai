@@ -349,6 +349,22 @@
     display: inline-block; width: 24px; margin-right: 14px;
     text-align: right; color: var(--text-dim); font-size: 11px; user-select: none;
   }
+  .demo-output-card { display: flex; flex-direction: column; }
+  .demo-tabs {
+    display: flex; gap: 6px; margin-bottom: 16px;
+    border-bottom: 1px solid var(--border); padding-bottom: 12px;
+  }
+  .demo-tab {
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    color: var(--text-muted); background: transparent;
+    border: 1px solid transparent; padding: 6px 12px; border-radius: 7px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .demo-tab:hover { color: var(--text-secondary); background: var(--surface-2); }
+  .demo-tab.active { color: var(--accent); background: var(--accent-soft); border-color: rgba(56,189,248,0.2); }
+  .demo-tab-panels { flex: 1; overflow: auto; }
+  .demo-panel { display: none; }
+  .demo-panel.active { display: block; }
   .demo-arrow {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
     width: 40px; height: 40px; border-radius: 50%;
@@ -719,9 +735,24 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </div>
 
-    <div class="demo-card">
+    <div class="demo-card demo-output-card">
       <h3>2. Get production-ready configs</h3>
-      <div class="demo-output"><span class="line"><span style="color:var(--accent)">FROM</span> node:20-alpine</span><span class="line"><span style="color:var(--emerald)">WORKDIR</span> /app</span><span class="line"><span style="color:var(--accent)">COPY</span> package*.json ./</span><span class="line"><span style="color:var(--accent)">RUN</span> npm ci</span><span class="line"><span style="color:var(--accent)">COPY</span> . .</span><span class="line"><span style="color:var(--accent)">EXPOSE</span> 3000</span><span class="line"><span style="color:var(--accent)">CMD</span> [<span style="color:var(--violet)">"npm"</span>, <span style="color:var(--violet)">"start"</span>]</span></div>
+      <div class="demo-tabs">
+        <button class="demo-tab active" data-tab="df">Dockerfile</button>
+        <button class="demo-tab" data-tab="compose">docker-compose.yml</button>
+        <button class="demo-tab" data-tab="tf">main.tf</button>
+      </div>
+      <div class="demo-tab-panels">
+        <div class="demo-panel active" data-panel="df">
+          <div class="demo-output"><span class="line"><span style="color:var(--accent)">FROM</span> node:20-alpine</span><span class="line"><span style="color:var(--emerald)">WORKDIR</span> /app</span><span class="line"><span style="color:var(--accent)">COPY</span> package*.json ./</span><span class="line"><span style="color:var(--accent)">RUN</span> npm ci</span><span class="line"><span style="color:var(--accent)">COPY</span> . .</span><span class="line"><span style="color:var(--accent)">EXPOSE</span> 3000</span><span class="line"><span style="color:var(--accent)">CMD</span> [<span style="color:var(--violet)">"npm"</span>, <span style="color:var(--violet)">"start"</span>]</span></div>
+        </div>
+        <div class="demo-panel" data-panel="compose">
+          <div class="demo-output"><span class="line"><span style="color:var(--emerald)">version</span>: '3.8'</span><span class="line"><span style="color:var(--emerald)">services</span>:</span><span class="line">  <span style="color:var(--accent)">app</span>:</span><span class="line">    <span style="color:var(--accent)">build</span>: .</span><span class="line">    <span style="color:var(--accent)">ports</span>:</span><span class="line">      - <span style="color:var(--violet)">"3000:3000"</span></span><span class="line">    <span style="color:var(--accent)">depends_on</span>:</span><span class="line">      - postgres</span><span class="line">      - redis</span><span class="line">  <span style="color:var(--accent)">postgres</span>:</span><span class="line">    <span style="color:var(--accent)">image</span>: postgres:16</span><span class="line">    <span style="color:var(--accent)">environment</span>:</span><span class="line">      <span style="color:var(--accent)">POSTGRES_PASSWORD</span>: changeme</span><span class="line">  <span style="color:var(--accent)">redis</span>:</span><span class="line">    <span style="color:var(--accent)">image</span>: redis:7</span></div>
+        </div>
+        <div class="demo-panel" data-panel="tf">
+          <div class="demo-output"><span class="line"><span style="color:var(--emerald)">variable</span> <span style="color:var(--violet)">"region"</span> {</span><span class="line">  <span style="color:var(--accent)">default</span> = <span style="color:var(--violet)">"ap-southeast-1"</span></span><span class="line">}</span><span class="line"><span style="color:var(--emerald)">provider</span> <span style="color:var(--violet)">"alicloud"</span> {</span><span class="line">  <span style="color:var(--accent)">region</span> = var.region</span><span class="line">}</span><span class="line"><span style="color:var(--emerald)">resource</span> <span style="color:var(--violet)">"alicloud_vpc"</span> <span style="color:var(--violet)">"voicops_vpc"</span> {</span><span class="line">  <span style="color:var(--accent)">vpc_name</span>   = <span style="color:var(--violet)">"voicops-vpc"</span></span><span class="line">  <span style="color:var(--accent)">cidr_block</span> = <span style="color:var(--violet)">"10.0.0.0/16"</span></span><span class="line">}</span><span class="line"><span style="color:var(--emerald)">resource</span> <span style="color:var(--violet)">"alicloud_instance"</span> <span style="color:var(--violet)">"voicops_ecs"</span> {</span><span class="line">  <span style="color:var(--accent)">instance_name</span> = <span style="color:var(--violet)">"voicops-app"</span></span><span class="line">  <span style="color:var(--accent)">instance_type</span> = <span style="color:var(--violet)">"ecs.t6-c1m1.large"</span></span><span class="line">}</span></div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -861,6 +892,22 @@
   }
   try { applyTheme(localStorage.getItem(THEME_KEY) || 'dark'); } catch(e) { applyTheme('dark'); }
   if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+</script>
+
+<script>
+  // Demo output tabs
+  document.querySelectorAll('.demo-tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var card = tab.closest('.demo-output-card');
+      if(!card) return;
+      card.querySelectorAll('.demo-tab').forEach(function(t){ t.classList.remove('active'); });
+      tab.classList.add('active');
+      var panelId = tab.getAttribute('data-tab');
+      card.querySelectorAll('.demo-panel').forEach(function(p){ p.classList.remove('active'); });
+      var panel = card.querySelector('.demo-panel[data-panel="' + panelId + '"]');
+      if(panel) panel.classList.add('active');
+    });
+  });
 </script>
 
 </body>

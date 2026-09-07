@@ -77,8 +77,15 @@ def build_terraform(services: list[str]) -> str | None:
         '}\n'
     )
 
-    # 3. Security Group with ingress rules for each port
-    ingress_rules = ""
+    # 3. Security Group + separate rule resources (Alicloud provider requirement)
+    sg_block = (
+        '\n'
+        'resource "alicloud_security_group" "voicops_sg" {\n'
+        '  name   = "voicops-sg"\n'
+        '  vpc_id = alicloud_vpc.voicops_vpc.id\n'
+        '}\n'
+    )
+
     port_descriptions = {
         22: "SSH",
         3000: "Node.js app",
@@ -89,27 +96,21 @@ def build_terraform(services: list[str]) -> str | None:
         6379: "Redis",
         27017: "MongoDB",
     }
+    sg_rules_block = ""
     for port in open_ports:
         desc = port_descriptions.get(port, f"Port {port}")
-        ingress_rules += (
+        rule_name = f"rule_{port}"
+        sg_rules_block += (
             '\n'
-            '  ingress {\n'
-            f'    description = "{desc}"\n'
-            '    from_port   = ' + str(port) + '\n'
-            '    to_port     = ' + str(port) + '\n'
-            '    ip_protocol = "tcp"\n'
-            '    cidr_blocks = ["0.0.0.0/0"]\n'
-            '  }\n'
+            f'resource "alicloud_security_group_rule" "{rule_name}" {{\n'
+            '  type              = "ingress"\n'
+            '  ip_protocol       = "tcp"\n'
+            '  port_range        = "' + str(port) + '/' + str(port) + '"\n'
+            '  security_group_id = alicloud_security_group.voicops_sg.id\n'
+            '  cidr_ip           = "0.0.0.0/0"\n'
+            f'  description       = "{desc}"\n'
+            '}\n'
         )
-
-    sg_block = (
-        '\n'
-        'resource "alicloud_security_group" "voicops_sg" {\n'
-        '  name   = "voicops-sg"\n'
-        '  vpc_id = alicloud_vpc.voicops_vpc.id\n'
-        f'{ingress_rules}'
-        '}\n'
-    )
 
     # 4. ECS Instance (only if an app runtime is detected)
     ecs_block = ""
@@ -132,6 +133,6 @@ def build_terraform(services: list[str]) -> str | None:
             '}\n'
         )
 
-    terraform_content = provider_block + vpc_block + sg_block + ecs_block
+    terraform_content = provider_block + vpc_block + sg_block + sg_rules_block + ecs_block
 
     return terraform_content

@@ -133,7 +133,16 @@ def build_config(services: list[str]) -> dict:
 #######################
     if dockerfile:
         port = RUNTIME_PORTS.get(runtime, 3000)
-        depends_block = "".join(f"      - {s}\n" for s in matched_infra) or "      []\n"
+        # Map internal keys to actual Docker Compose service names
+        service_name_map = {
+            "postgresql": "postgres",
+            "mysql": "mysql",
+            "redis": "redis",
+            "mongodb": "mongo",
+        }
+        depends_block = "".join(
+            f"      - {service_name_map.get(s, s)}\n" for s in matched_infra
+        ) or "      []\n"
         app_block = (
             "  app:\n"
             "    build: .\n"

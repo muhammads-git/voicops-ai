@@ -273,7 +273,7 @@ Respond only with JSON in this exact shape:
 Only use these values in "services": postgresql, mysql, mongodb, redis, fastapi, nodejs, flask, django.
 Any service mentioned that is NOT in that list goes into "unsupported" instead, using the user's own word for it.
 If there are no unsupported services, return an empty list for "unsupported".
-Set "deploy_cloud" to true only when the user explicitly mentions cloud deployment, Alibaba Cloud, cloud infrastructure, "on the cloud", or "deploy to the cloud". Otherwise set it to false."""
+Set "deploy_cloud" to true only when the user explicitly mentions cloud deployment, Alibaba Cloud, cloud infrastructure, "on the cloud", or "deploy to the cloud", or "make a deployment ready script". Otherwise set it to false."""
 
 
 async def extract_intent(transcript: str) -> dict:

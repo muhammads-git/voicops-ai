@@ -160,4 +160,3 @@ def build_config(services: list[str]) -> dict:
         "docker_compose": docker_compose,
     }
 
-""" Needed a FIX for speech recocgnition errors. sometimes misreads the wordings..."""

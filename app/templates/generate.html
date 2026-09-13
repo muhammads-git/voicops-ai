@@ -706,6 +706,7 @@
   let recordingStartTime = 0;
   let animFrameId = null;
   let recordingTimeoutId = null;
+  let pendingStop = false;  // true when the user released before mic setup finished — honor the stop as soon as it's ready
   const MAX_RECORDING_MS = 30000;
   const STORAGE_KEY = 'voicops_chat_history';
   let chatHistory = [];
